@@ -1,0 +1,97 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          DEFAULT: '#1E3A2F',
+          hover: '#162d24',
+          light: '#e8f0eb',
+          foreground: '#ffffff',
+        },
+        /** Partial-payment hero / dark panels — brand fill */
+        brand: {
+          hero: '#041B01',
+        },
+        whatsapp: '#25D366',
+      },
+      fontFamily: {
+        sans: ['Fira Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        // IDs / reference codes: same face as UI (Fira Sans), not system monospace
+        mono: ['Fira Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        xs: ['0.75rem', { lineHeight: '1.4em' }],
+        sm: ['0.875rem', { lineHeight: '1.4em' }],
+        base: ['1rem', { lineHeight: '1.4em' }],
+        lg: ['1.125rem', { lineHeight: '1.45em' }],
+        xl: ['1.25rem', { lineHeight: '1.35em' }],
+        '2xl': ['1.5rem', { lineHeight: '1.3em' }],
+        'h2-mob': ['1.75rem', { lineHeight: '1.2em' }],
+        'h1-mob': ['2rem', { lineHeight: '1.2em' }],
+        'h2-dsk': ['2.5rem', { lineHeight: '1.2em' }],
+        'h1-dsk': ['2.625rem', { lineHeight: '1.2em' }],
+        'h1-mobile': ['2rem', { lineHeight: '1.2em', letterSpacing: '-0.0175em', fontWeight: '500' }],
+        'h2-mobile': ['1.75rem', { lineHeight: '1.2em', fontWeight: '500' }],
+        'h3-mobile': ['1.25rem', { lineHeight: '1.3em', letterSpacing: '0.0035em', fontWeight: '500' }],
+        'h4-mobile': ['1.125rem', { lineHeight: '1.35em', fontWeight: '500' }],
+        'h5-mobile': ['1rem', { lineHeight: '1.4em', fontWeight: '500' }],
+        'h6-mobile': ['0.875rem', { lineHeight: '1.4em', letterSpacing: '0.04em', fontWeight: '500' }],
+        'h1-desktop': ['2.625rem', { lineHeight: '1.2em', letterSpacing: '-0.0175em', fontWeight: '500' }],
+        'h2-desktop': ['2.5rem', { lineHeight: '1.2em', fontWeight: '500' }],
+        'h3-desktop': ['1.5rem', { lineHeight: '1.3em', letterSpacing: '0.0035em', fontWeight: '500' }],
+        'h4-desktop': ['1.25rem', { lineHeight: '1.35em', fontWeight: '500' }],
+        'h5-desktop': ['1.125rem', { lineHeight: '1.4em', fontWeight: '500' }],
+        'h6-desktop': ['1rem', { lineHeight: '1.4em', letterSpacing: '0.04em', fontWeight: '500' }],
+        'lead-mobile': ['1rem', { lineHeight: '1.45em', fontWeight: '300' }],
+        'lead-desktop': ['1.25rem', { lineHeight: '1.3em', fontWeight: '300' }],
+        body: ['1rem', { lineHeight: '1.4em' }],
+        'body-desktop': ['1rem', { lineHeight: '1.6em' }],
+        'blockquote-mobile': ['1rem', { lineHeight: '1.45em', fontWeight: '300' }],
+        'blockquote-desktop': ['1.25rem', { lineHeight: '1.5em', fontWeight: '300' }],
+        button: ['1rem', { lineHeight: '1.6em', fontWeight: '500' }],
+        'label-mobile': ['0.75rem', { lineHeight: '1.2em', letterSpacing: '0.042em', fontWeight: '400' }],
+        'label-desktop': ['0.875rem', { lineHeight: '1.2em', letterSpacing: '0.042em', fontWeight: '400' }],
+        'overline-mobile': ['0.875rem', { lineHeight: '1.6em', letterSpacing: '0.109em', fontWeight: '400' }],
+        'overline-desktop': ['1rem', { lineHeight: '1.6em', letterSpacing: '0.109em', fontWeight: '400' }],
+      },
+      fontWeight: {
+        light: '300',
+        normal: '400',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
+      },
+      letterSpacing: {
+        tighter: '-0.0175em',
+        tight: '-0.01em',
+        normal: '0',
+        subtle: '0.0035em',
+        wide: '0.04em',
+        label: '0.042em',
+        wider: '0.109em',
+      },
+      lineHeight: {
+        tight: '1.2em',
+        snug: '1.3em',
+        relaxed: '1.35em',
+        normal: '1.4em',
+        loose: '1.5em',
+        looser: '1.6em',
+      },
+      keyframes: {
+        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+        slideDown: { '0%': { transform: 'translateY(-8px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+      },
+      animation: {
+        fadeIn: 'fadeIn 0.2s ease-in-out',
+        slideDown: 'slideDown 0.2s ease-out',
+      },
+    },
+  },
+  plugins: [],
+};

@@ -1,0 +1,62 @@
+/* Self-hosted Fira Sans (OTF) — URLs resolve via Vite public/ → site root /fonts/ */
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('/fonts/FiraSans-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('/fonts/FiraSans-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('/fonts/FiraSans-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('/fonts/FiraSans-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('/fonts/FiraSans-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased text-slate-900 text-base;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      @apply leading-looser;
+    }
+  }
+
+  li {
+    @apply leading-normal;
+  }
+
+  @media (min-width: 768px) {
+    li {
+      @apply leading-[1.45em];
+    }
+  }
+}
