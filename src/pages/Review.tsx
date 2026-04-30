@@ -76,8 +76,8 @@ const ProductMeta: React.FC<{
   if (!showIndianComplianceIds) return null;
   return (
     <div className="mt-0.5 space-y-0.5">
-      <p className="text-sm text-slate-400">SKU ID: {skuId}</p>
-      <p className="text-sm text-slate-400">NSDC: {nsdcName}</p>
+      <p className="text-xs text-slate-400">SKU ID: {skuId}</p>
+      <p className="text-xs text-slate-400">NSDC: {nsdcName}</p>
     </div>
   );
 };
@@ -89,7 +89,7 @@ interface GstProps {
   onChange: (f: 'companyName' | 'gstin' | 'billingAddress', v: string) => void;
 }
 const GstControl: React.FC<GstProps> = ({ gstEnabled, onToggle, companyName, gstin, billingAddress, onChange }) => (
-  <div className="border border-slate-200 rounded-xl p-4 bg-white">
+  <>
     <label className="flex items-center gap-3 cursor-pointer select-none">
       <input type="checkbox" checked={gstEnabled} onChange={(e) => onToggle(e.target.checked)}
         className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
@@ -105,7 +105,7 @@ const GstControl: React.FC<GstProps> = ({ gstEnabled, onToggle, companyName, gst
           onChange={(e) => onChange('billingAddress', e.target.value)} />
       </div>
     )}
-  </div>
+  </>
 );
 
 // Bump / Audio product card — two-zone layout matching design spec
@@ -374,84 +374,122 @@ export const ReviewPage: React.FC = () => {
         <span>Edit details</span>
       </button>
 
-      {/* Product header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 flex-wrap mb-1">
-          <h1 className="text-2xl font-medium text-slate-900">{PROGRAM_DATA.title}</h1>
-          {PROGRAM_DATA.isNsdcAligned && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-yellow-100 text-yellow-800 border border-yellow-200">
-              NSDC Training Partnership
-            </span>
-          )}
-        </div>
-        {isIndia && (
-          <div className="flex flex-wrap gap-x-4 mt-1">
-            <span className="text-[14px] text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
-            <span className="text-[14px] text-slate-400">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
-          </div>
-        )}
-      </div>
-
-      {/* User details summary strip */}
-      <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap items-center gap-3 text-sm text-slate-700">
-        <span className="font-medium">{userDetails.fullName || '—'}</span>
-        <span className="text-slate-300">·</span>
-        <span>{userDetails.email || '—'}</span>
-        <span className="text-slate-300">·</span>
-        <span>{userDetails.phone || '—'}</span>
-      </div>
-
-      {/* Commitment banner */}
-      <div className={clsx(
-        'mb-8 p-4 rounded-lg border flex gap-3 items-start',
-        paymentMode === 'partial'
-          ? 'bg-slate-100 border-slate-200 text-slate-900'
-          : 'bg-green-50 border-green-200 text-green-900'
-      )}>
-        <InformationCircleIcon className="h-6 w-6 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="font-medium">
-            {paymentMode === 'partial'
-              ? "You're confirming your seat with a booking payment."
-              : "You're paying the full program fee."}
-          </p>
-          <p className="text-sm mt-1 opacity-90">
-            {paymentMode === 'partial'
-              ? `Remaining ${formatPrice(courseRemainderDiscounted)} (course fee only) to be paid on the schedule below — add-ons are included in your first payment.`
-              : 'No further payments required.'}
-          </p>
-        </div>
-      </div>
-
       <div className="grid lg:grid-cols-3 gap-8">
 
         {/* ── Left 2 columns ──────────────────────────────────────────────────── */}
         <div className="lg:col-span-2 space-y-6">
 
-          {/* Cohort selector — only on Step 2 when Step 1 was skipped */}
-          {step1Skipped && PROGRAM_DATA.cohorts.length > 0 && (
-            <section>
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Select Cohort</h2>
-              <select
-                value={selectedCohortId}
-                onChange={(e) => setCohortId(e.target.value)}
-                className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm py-2.5 pl-4 pr-10 border bg-white appearance-none"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
-              >
-                {PROGRAM_DATA.cohorts.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              {selectedCohort && (
-                <div className="mt-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-md border border-slate-200">
-                  <p>{selectedCohort.description}</p>
-                  {selectedCohort.seatsLeft && selectedCohort.seatsLeft < 20 && (
-                    <p className="text-red-600 font-medium mt-1">Only {selectedCohort.seatsLeft} seats left!</p>
+          {/* ── Unified Product Card ────────────────────────────────────────── */}
+          <div className="rounded-xl border border-slate-200 bg-white">
+
+            {/* Product identity */}
+            <div className="p-5">
+              <div className="flex items-start gap-2 flex-wrap mb-1">
+                <h1 className="text-2xl font-semibold text-slate-900 leading-snug">{PROGRAM_DATA.title}</h1>
+                {PROGRAM_DATA.isNsdcAligned && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-yellow-100 text-yellow-800 border border-yellow-200 shrink-0 mt-1">
+                    NSDC Training Partnership
+                  </span>
+                )}
+              </div>
+              {isIndia && (
+                <div className="flex flex-wrap gap-x-4 mt-1">
+                  <span className="text-[13px] text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
+                  <span className="text-[13px] text-slate-400">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
+                </div>
+              )}
+              <div className={clsx('flex flex-wrap items-center gap-2 text-sm text-slate-500', isIndia ? 'mt-3' : 'mt-2')}>
+                <span className="font-medium text-slate-700">{userDetails.fullName || '—'}</span>
+                <span className="text-slate-300">·</span>
+                <span>{userDetails.email || '—'}</span>
+                <span className="text-slate-300">·</span>
+                <span>{userDetails.phone || '—'}</span>
+              </div>
+
+              {/* Cohort selector — only when Step 1 was skipped */}
+              {step1Skipped && PROGRAM_DATA.cohorts.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <p className="text-sm font-medium text-slate-700 mb-2">Select Cohort</p>
+                  <select
+                    value={selectedCohortId}
+                    onChange={(e) => setCohortId(e.target.value)}
+                    className="block w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary sm:text-sm py-2.5 pl-4 pr-10 border bg-white appearance-none"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                  >
+                    {PROGRAM_DATA.cohorts.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                  {selectedCohort && (
+                    <div className="mt-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-md border border-slate-200">
+                      <p>{selectedCohort.description}</p>
+                      {selectedCohort.seatsLeft && selectedCohort.seatsLeft < 20 && (
+                        <p className="text-red-600 font-medium mt-1">Only {selectedCohort.seatsLeft} seats left!</p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
-            </section>
-          )}
+            </div>
+
+            {/* Payment mode + schedule — inside card when not checking/duplicate */}
+            {!isChecking && !isDuplicateFound && (
+              <>
+                {/* Choose payment option */}
+                <div className="border-t border-slate-100 px-5 pt-5 pb-5">
+                  <p className="text-sm font-normal text-slate-500 mb-3">Choose payment option</p>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {[
+                      { mode: 'full' as const,    label: 'Full Payment',    amount: displayFeeDiscounted,                   sub: 'No future payments required' },
+                      {
+                        mode: 'partial' as const,
+                        label: 'Booking Amount',
+                        amount: partialDueTodayDiscounted,
+                        sub:
+                          addonsTotal > 0
+                            ? 'Includes add-ons · remaining course fee on schedule'
+                            : 'Pay remaining course fee later',
+                      },
+                    ].map(({ mode, label, amount, sub }) => {
+                      const isSel = paymentMode === mode;
+                      return (
+                        <div key={mode} onClick={() => setPaymentMode(mode)}
+                          className={clsx(
+                            'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200',
+                            isSel ? 'border-primary bg-primary-light' : 'border-slate-200 hover:border-slate-300 bg-white'
+                          )}
+                        >
+                          <div className={clsx('h-5 w-5 rounded-full border flex items-center justify-center mb-2', isSel ? 'border-primary' : 'border-slate-300')}>
+                            {isSel && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                          </div>
+                          <h3 className="font-medium text-base text-slate-900">{label}</h3>
+                          <p className="text-xl font-semibold text-slate-900 mt-1">{formatPrice(amount)}</p>
+                          <p className="text-sm text-slate-500 mt-1">{sub}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Payment schedule — inside card when partial is selected */}
+                {paymentMode === 'partial' && (
+                  <div className="border-t border-slate-100 px-5 pt-4 pb-5">
+                    <p className="text-sm font-medium text-slate-500 mb-3">Payment Schedule</p>
+                    <div className="space-y-3">
+                      {PROGRAM_DATA.installments.map((inst, i) => (
+                        <div key={i} className="flex justify-between items-baseline text-sm">
+                          <span className="text-slate-500">{inst.label}</span>
+                          <span className="font-medium text-slate-900">
+                            {formatPrice(applyDisc(inst.amount))}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
           {/* ── Duplicate payment check ─────────────────────────────────────── */}
           {isChecking && (
@@ -472,80 +510,27 @@ export const ReviewPage: React.FC = () => {
             />
           )}
 
-          {/* ── Payment options (hidden while check is running or duplicate found) */}
+          {/* Discount window — separate action card */}
+          {!isChecking && !isDuplicateFound && paymentMode === 'partial' && discountWindow && discountSecs !== null && (
+            <Card className="p-5 border border-[rgb(85,170,136)] bg-primary-light">
+              <p className="text-base font-medium text-slate-900 mb-2">Limited-time offer</p>
+              <p className="text-slate-800 text-sm mb-3">Pay the remaining balance at a discounted rate.</p>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-xl font-medium text-primary">{formatPrice(discountWindow.discountedRemainingAmount)}</span>
+                <span className="text-sm line-through text-slate-400">{formatPrice(discountWindow.fullRemainingAmount)}</span>
+              </div>
+              <p className="text-sm text-slate-500 mb-4">
+                Discount valid for{' '}
+                <span className="font-medium text-slate-700">
+                  {Math.floor(discountSecs / 86400)}d {Math.floor((discountSecs % 86400) / 3600)}h {Math.floor((discountSecs % 3600) / 60)}m
+                </span>
+              </p>
+              <Button className="w-full font-medium">{discountWindow.ctaLabel}</Button>
+            </Card>
+          )}
+
           {!isChecking && !isDuplicateFound && (
             <>
-              {/* Full / Partial selector */}
-              <div className="grid md:grid-cols-2 gap-4">
-                {[
-                  { mode: 'full' as const,    label: 'Full Payment',    amount: displayFeeDiscounted,                   sub: 'No future payments required' },
-                  {
-                    mode: 'partial' as const,
-                    label: 'Booking Amount',
-                    amount: partialDueTodayDiscounted,
-                    sub:
-                      addonsTotal > 0
-                        ? 'Includes add-ons · remaining course fee on schedule'
-                        : 'Pay remaining course fee later',
-                  },
-                ].map(({ mode, label, amount, sub }) => {
-                  const isSel = paymentMode === mode;
-                  return (
-                    <div key={mode} onClick={() => setPaymentMode(mode)}
-                      className={clsx(
-                        'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200',
-                        isSel ? 'border-primary bg-primary-light' : 'border-slate-200 hover:border-slate-300 bg-white'
-                      )}
-                    >
-                      <div className={clsx('h-5 w-5 rounded-full border flex items-center justify-center mb-2', isSel ? 'border-primary' : 'border-slate-300')}>
-                        {isSel && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
-                      </div>
-                      <h3 className="font-medium text-base text-slate-900">{label}</h3>
-                      <p className="text-xl font-medium text-slate-900 mt-1">{formatPrice(amount)}</p>
-                      <p className="text-sm text-slate-500 mt-1">{sub}</p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Partial payment schedule + discount window */}
-              {paymentMode === 'partial' && (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-base font-medium text-slate-900 mb-3">Payment Schedule</h3>
-                    <Card className="p-4 bg-slate-50 border-slate-200">
-                      <div className="space-y-3">
-                        {PROGRAM_DATA.installments.map((inst, i) => (
-                          <div key={i} className="flex justify-between text-sm text-slate-600">
-                            <span>{inst.label}</span>
-                            <span className="font-normal text-base text-slate-900">
-                              {formatPrice(applyDisc(inst.amount))}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  </div>
-
-                  {discountWindow && discountSecs !== null && (
-                    <Card className="p-5 border border-[rgb(85,170,136)] bg-primary-light">
-                      <p className="text-base font-medium text-slate-900 mb-2">Limited-time offer</p>
-                      <p className="text-slate-800 text-sm mb-3">Pay the remaining balance at a discounted rate.</p>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-xl font-medium text-primary">{formatPrice(discountWindow.discountedRemainingAmount)}</span>
-                        <span className="text-sm line-through text-slate-400">{formatPrice(discountWindow.fullRemainingAmount)}</span>
-                      </div>
-                      <p className="text-sm text-slate-500 mb-4">
-                        Discount valid for{' '}
-                        <span className="font-medium text-slate-700">
-                          {Math.floor(discountSecs / 86400)}d {Math.floor((discountSecs % 86400) / 3600)}h {Math.floor((discountSecs % 3600) / 60)}m
-                        </span>
-                      </p>
-                      <Button className="w-full font-medium">{discountWindow.ctaLabel}</Button>
-                    </Card>
-                  )}
-                </div>
-              )}
 
               {/* Bumps + Audio — "Don't miss out on these deals" */}
               {(bumpProducts.length > 0 || audioProducts.length > 0) && (
@@ -576,53 +561,7 @@ export const ReviewPage: React.FC = () => {
                 </section>
               )}
 
-              {/* Review contact details before pay (below add-ons) */}
-              <section>
-                <h3 className="text-base font-medium text-slate-900 mb-3">Your contact details</h3>
-                <Card className="p-5 bg-white border-slate-200">
-                  <div className="space-y-5">
-                    <div className="flex gap-3">
-                      <InformationCircleOutlineIcon className="h-5 w-5 text-slate-400 flex-shrink-0 mt-0.5" aria-hidden />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 break-all">
-                          {userDetails.email.trim() || '—'}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                          You will get access to the content for these programs on this email.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <InformationCircleOutlineIcon className="h-5 w-5 text-slate-400 flex-shrink-0 mt-0.5" aria-hidden />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 tabular-nums">
-                          {phoneDisplayReview}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                          {"We'll send you WhatsApp updates on this number."}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleBack}
-                      className="text-sm font-normal text-slate-700 underline underline-offset-2 hover:text-slate-900"
-                    >
-                      Change
-                    </button>
-                  </div>
-                </Card>
-              </section>
 
-              {/* GST invoice */}
-              <div>
-                <h3 className="text-base font-medium text-slate-900 mb-3">Billing</h3>
-                <GstControl
-                  gstEnabled={gstEnabled} onToggle={setGstEnabled}
-                  companyName={gstDetails.companyName} gstin={gstDetails.gstin} billingAddress={gstDetails.billingAddress}
-                  onChange={(f, v) => setGstDetails({ [f]: v })}
-                />
-              </div>
 
               {/* What's included */}
               <div>
@@ -651,7 +590,9 @@ export const ReviewPage: React.FC = () => {
         {/* ── Right column — sticky order summary ──────────────────────────────── */}
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-6 space-y-4">
-            <Card className="p-6 bg-white border-slate-200">
+
+            {/* ── Order Summary card ── */}
+            <Card className="px-6 pt-6 pb-3 bg-white border-slate-200">
               <h3 className="text-base font-medium mb-1 text-slate-900">Order Summary</h3>
               {couponApplied && (
                 <p className="text-xs text-emerald-700 font-normal mb-3">
@@ -660,113 +601,26 @@ export const ReviewPage: React.FC = () => {
               )}
 
               {/* Primary product */}
-              <div className="pb-3 border-b border-slate-100 mb-3">
+              <div className="pb-3 mb-3">
                 <div className="flex justify-between items-start gap-2">
                   <span className="text-slate-700 font-normal text-sm">{PROGRAM_DATA.title}</span>
                   <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
                     {formatPrice(applyDisc(basePrice))}
                   </span>
                 </div>
-                <ProductMeta
-                  skuId={PROGRAM_DATA.sku_id}
-                  nsdcName={PROGRAM_DATA.nsdc_course_name}
-                  showIndianComplianceIds={isIndia}
-                />
               </div>
 
               {/* Add-ons */}
               {[...selectedBumps, ...selectedAudios].map((p) => (
-                <div key={p.id} className="pb-3 border-b border-slate-100 mb-3">
+                <div key={p.id} className="pb-3 border-b-0 border-slate-100 mb-3">
                   <div className="flex justify-between items-start gap-2">
                     <span className="text-slate-700 text-sm">{p.name}</span>
                     <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
                       +{formatPrice(applyDisc(p.price))}
                     </span>
                   </div>
-                  <ProductMeta
-                    skuId={p.sku_id}
-                    nsdcName={p.nsdc_course_name}
-                    showIndianComplianceIds={isIndia}
-                  />
                 </div>
               ))}
-
-              {/* Coupon — separator is the border-b on the product / last add-on row above */}
-              <div className="pt-4 mb-4 space-y-3">
-                <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wide">Coupon</h4>
-                {!couponApplied ? (
-                  <>
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor="coupon-code"
-                        className="block text-sm font-normal text-slate-700 leading-snug"
-                      >
-                        Have a code from sales?
-                      </label>
-                      <div
-                        className={clsx(
-                          'flex rounded-lg border bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-0',
-                          couponError ? 'border-red-300 focus-within:ring-red-500' : 'border-slate-300',
-                        )}
-                      >
-                        <input
-                          id="coupon-code"
-                          type="text"
-                          placeholder="e.g. SALES20"
-                          value={couponInput}
-                          onChange={(e) => {
-                            setCouponInput(e.target.value);
-                            if (couponError) setCouponError('');
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleApplyCoupon();
-                            }
-                          }}
-                          className="min-w-0 flex-1 border-0 bg-transparent py-2.5 pl-3 pr-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleApplyCoupon}
-                          className="shrink-0 px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary-light/70 border-l border-slate-200 transition-colors"
-                        >
-                          APPLY
-                        </button>
-                      </div>
-                      {couponError ? (
-                        <p className="text-xs text-red-600">{couponError}</p>
-                      ) : null}
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off
-                      full or partial checkout.
-                    </p>
-                  </>
-                ) : (
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
-                    <span className="font-medium">{DUMMY_COUPON_CODE} · 20% off applied</span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveCoupon}
-                      className="text-xs font-normal text-emerald-800 underline underline-offset-2 self-start sm:self-auto"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2 text-sm mb-4">
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-500">Cohort</span>
-                  <span className="text-slate-500 text-sm text-right">{selectedCohort?.name ?? '—'}</span>
-                </div>
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-500">Applicable Taxes</span>
-                  <span className="text-slate-500 text-sm text-right">Included (GST inclusive)</span>
-                </div>
-              </div>
 
               {paymentMode === 'partial' && (
                 <div className="border-t border-slate-100 pt-3 mb-3 space-y-2">
@@ -834,20 +688,112 @@ export const ReviewPage: React.FC = () => {
               </div>
 
               {!isDuplicateFound && (
-                <>
+                <div className="lg:hidden">
                   <Button
                     onClick={handlePay}
                     disabled={isPaying || isChecking}
-                    className="w-full bg-primary hover:bg-primary-hover text-white font-medium py-3 text-sm shadow-md active:scale-[0.98]"
+                    className="w-full font-semibold py-4 text-base shadow-md active:scale-[0.98]"
                   >
                     {isPaying ? 'Processing…' : `Pay ${formatPrice(amountPayableToday)}`}
                   </Button>
-                  <div className="mt-4 flex items-start justify-start gap-2 text-xs text-slate-500">
-                    <CheckCircleIcon className="h-4 w-4 text-slate-400" />
+                  <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+                    <CheckCircleIcon className="h-4 w-4 text-green-500" />
                     <span>Secure Payment · 256-bit SSL Encrypted</span>
                   </div>
-                </>
+                </div>
               )}
+            </Card>
+
+            {/* ── Coupon & Taxes card ── */}
+            <Card className="p-6 bg-white border-slate-200">
+              <h3 className="text-base font-medium mb-3 text-slate-900">Coupon</h3>
+
+              {/* Coupon input */}
+              <div className="space-y-3">
+                {!couponApplied ? (
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor="coupon-code"
+                        className="block text-sm font-normal text-slate-700 leading-snug"
+                      >
+                        Have a code from sales?
+                      </label>
+                      <div
+                        className={clsx(
+                          'flex rounded-lg border bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-0',
+                          couponError ? 'border-red-300 focus-within:ring-red-500' : 'border-slate-300',
+                        )}
+                      >
+                        <input
+                          id="coupon-code"
+                          type="text"
+                          placeholder="e.g. SALES20"
+                          value={couponInput}
+                          onChange={(e) => {
+                            setCouponInput(e.target.value);
+                            if (couponError) setCouponError('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleApplyCoupon();
+                            }
+                          }}
+                          className="min-w-0 flex-1 border-0 bg-transparent py-2.5 pl-3 pr-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          className="shrink-0 px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary-light/70 border-l border-slate-200 transition-colors"
+                        >
+                          APPLY
+                        </button>
+                      </div>
+                      {couponError ? (
+                        <p className="text-xs text-red-600">{couponError}</p>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off
+                      full or partial checkout.
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
+                    <span className="font-medium">{DUMMY_COUPON_CODE} · 20% off applied</span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-xs font-normal text-emerald-800 underline underline-offset-2 self-start sm:self-auto"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Applicable Taxes */}
+              <div className="space-y-2 text-sm pt-4 mt-4 border-t border-slate-100">
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-500">Cohort</span>
+                  <span className="text-slate-500 text-sm text-right">{selectedCohort?.name ?? '—'}</span>
+                </div>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-500">Applicable Taxes</span>
+                  <span className="text-slate-500 text-sm text-right">Included (GST inclusive)</span>
+                </div>
+              </div>
+
+            </Card>
+
+            {/* ── GST Invoice card ── */}
+            <Card className="px-6 py-4 bg-white border-slate-200">
+              <GstControl
+                gstEnabled={gstEnabled} onToggle={setGstEnabled}
+                companyName={gstDetails.companyName} gstin={gstDetails.gstin} billingAddress={gstDetails.billingAddress}
+                onChange={(f, v) => setGstDetails({ [f]: v })}
+              />
             </Card>
           </div>
         </div>
@@ -888,7 +834,34 @@ export const ReviewPage: React.FC = () => {
           </Button>
         </div>
       )}
+
+      {/* Desktop sticky footer */}
+      {!isDuplicateFound && (
+        <div className="hidden lg:flex fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] py-4">
+          <div className="max-w-4xl mx-auto w-full px-4 flex items-center justify-between">
+            <div className="flex flex-col items-baseline gap-1.5">
+              <span className="text-sm text-slate-500">Total Due Today</span>
+              <span className="text-xl font-semibold text-slate-900">{formatPrice(amountPayableToday)}</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                onClick={handlePay}
+                disabled={isPaying || isChecking}
+                className="w-full font-semibold px-8 py-3 text-base shadow-md active:scale-[0.98]"
+              >
+                {isPaying ? 'Processing…' : `Pay ${formatPrice(amountPayableToday)}`}
+              </Button>
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
+                <span>Secure Payment · 256-bit SSL Encrypted</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="lg:hidden h-24" />
+      <div className="hidden lg:block h-20" />
     </div>
   );
 };
