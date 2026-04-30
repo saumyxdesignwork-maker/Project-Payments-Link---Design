@@ -197,7 +197,7 @@ const MOCK_ORDERS: Order[] = [
         productTag: 'Main Program',
         accessType: 'nsdc_onboarding',
         nsdcSteps: {
-          whatsappUrl: PROGRAM_DATA.whatsapp_url ?? 'https://wa.me/example',
+          whatsappUrl: PROGRAM_DATA.whatsapp_group_url ?? 'https://wa.me/example',
           nsdcEnrollPath: '/portal/enroll',
         },
       },
