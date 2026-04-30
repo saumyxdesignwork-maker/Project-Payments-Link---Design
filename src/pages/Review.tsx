@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROGRAM_DATA } from '../data/paymentLink';
-import { COUNTRY_BY_CODE, isIndianCountryCode } from '../data/countryCodes';
+import { isIndianCountryCode } from '../data/countryCodes';
 import type { BumpProduct, AudioProduct } from '../data/paymentLink';
 import { useStore } from '../store/useStore';
 import { Card } from '../components/Card';
@@ -286,8 +286,6 @@ export const ReviewPage: React.FC = () => {
 
   const discountWindow = PROGRAM_DATA.discount_window;
   const discountSecs   = discountWindow ? discountSecondsLeft(discountWindow.expiresAt) : null;
-
-  const dialCode = COUNTRY_BY_CODE[userDetails.countryCode]?.dialCode ?? '';
 
   const isChecking      = duplicateStatus === 'checking';
   const isDuplicateFound = duplicateStatus === 'found';
