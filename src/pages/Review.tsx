@@ -16,11 +16,9 @@ import {
 } from '../utils/partialPricing';
 import {
   CheckCircleIcon,
-  InformationCircleIcon,
   ExclamationTriangleIcon,
   ChevronLeftIcon,
 } from '@heroicons/react/24/solid';
-import { InformationCircleIcon as InformationCircleOutlineIcon } from '@heroicons/react/24/outline';
 import { clsx } from 'clsx';
 
 /** Prototype: sales coupon = 20% off (full or partial). Replace with API validation. */
@@ -290,10 +288,6 @@ export const ReviewPage: React.FC = () => {
   const discountSecs   = discountWindow ? discountSecondsLeft(discountWindow.expiresAt) : null;
 
   const dialCode = COUNTRY_BY_CODE[userDetails.countryCode]?.dialCode ?? '';
-  const phoneDisplayReview =
-    userDetails.phone.trim() !== ''
-      ? `${dialCode ? `${dialCode}-` : ''}${userDetails.phone.trim()}`
-      : '—';
 
   const isChecking      = duplicateStatus === 'checking';
   const isDuplicateFound = duplicateStatus === 'found';
