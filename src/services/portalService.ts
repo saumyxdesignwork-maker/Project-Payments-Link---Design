@@ -20,7 +20,7 @@ import type {
   PaymentType,
   EnrollmentStatus,
 } from '../types/portal';
-import type { Order, Payment, ToolAccess, NsdcSubmittedProfile } from '../types/order';
+import type { Order, Payment, Invoice, Refund, ToolAccess, NsdcSubmittedProfile } from '../types/order';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -189,6 +189,26 @@ const MOCK_ORDERS: Order[] = [
     paidScheduleSteps: 1, // only booking paid; bump to 2+ to simulate more progress in UI
     // Cohort starts ~12 days from now — within the 14-day proximity window for access upgrade
     cohortStartDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    // Per-product access configs — each product has its own onboarding state
+    purchasedProducts: [
+      {
+        id: 'prod-001-main',
+        name: PROGRAM_DATA.title,
+        productTag: 'Main Program',
+        accessType: 'nsdc_onboarding',
+        nsdcSteps: {
+          whatsappUrl: PROGRAM_DATA.whatsapp_url ?? 'https://wa.me/example',
+          nsdcEnrollPath: '/portal/enroll',
+        },
+      },
+      {
+        id: 'prod-001-addon',
+        name: 'AI Tools Masterclass',
+        productTag: 'Add-on',
+        accessType: 'direct_link',
+        accessUrl: 'https://lms.growthschool.io/ai-tools',
+      },
+    ],
   },
   /**
    * Indian learner, older paid program: NSDC fields were not collected at purchase time
@@ -214,6 +234,21 @@ const MOCK_ORDERS: Order[] = [
     lmsLink: PROGRAM_DATA.redirect_url,
     customerEmail: 'learner@example.com',
     customerName: 'Demo Learner',
+    purchasedProducts: [
+      {
+        id: 'prod-leg-main',
+        name: 'Performance Marketing Bootcamp (2024)',
+        productTag: 'Main Program',
+        accessType: 'direct_link',
+        accessUrl: PROGRAM_DATA.redirect_url,
+      },
+      {
+        id: 'prod-leg-audio',
+        name: 'Marketing Psychology Audio Series',
+        productTag: 'Audio Add-on',
+        accessType: 'email_24h',
+      },
+    ],
   },
   {
     id: 'ORD-002',
@@ -234,6 +269,23 @@ const MOCK_ORDERS: Order[] = [
     emilyLink: 'https://meetemily.ai/',
     customerEmail: 'learner@example.com',
     customerName: 'Demo Learner',
+    purchasedProducts: [
+      {
+        id: 'prod-002-main',
+        name: PROGRAM_DATA.title,
+        productTag: 'Main Program',
+        accessType: 'email_24h',
+      },
+      {
+        id: 'prod-002-bonus',
+        name: 'Live Q&A Session Bundle',
+        productTag: 'Bonus',
+        accessType: 'custom_cta',
+        ctaLabel: 'Schedule your session',
+        ctaUrl: 'https://calendly.com/growthschool/qa-session',
+        ctaDescription: 'Book a 1-on-1 live session with your instructor at a time that suits you.',
+      },
+    ],
   },
 ];
 
@@ -289,6 +341,77 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 /**
+ * Mock invoices per order.
+ *
+ * DB integration point:
+ *   SELECT * FROM invoices WHERE order_id = :orderId ORDER BY issued_at DESC
+ *
+ * GST invoices are only issued for Indian orders; non-Indian orders show
+ * status 'unavailable'. Pending means the PDF is still being generated.
+ */
+const MOCK_INVOICES: Record<string, Invoice[]> = {
+  'ORD-001': [
+    {
+      id: 'INV-001-01',
+      orderId: 'ORD-001',
+      issuedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      amount: PROGRAM_DATA.bookingAmount,
+      currency: 'INR',
+      status: 'available',
+      downloadUrl: 'https://example.com/invoices/INV-001-01.pdf',
+      label: 'GST Invoice — Booking',
+    },
+  ],
+  'ORD-LEGACY': [
+    {
+      id: 'INV-LEG-01',
+      orderId: 'ORD-LEGACY',
+      issuedAt: new Date(Date.now() - 420 * 24 * 60 * 60 * 1000).toISOString(),
+      amount: 25_000,
+      currency: 'INR',
+      status: 'available',
+      downloadUrl: 'https://example.com/invoices/INV-LEG-01.pdf',
+      label: 'GST Invoice',
+    },
+  ],
+  'ORD-002': [
+    {
+      id: 'INV-002-01',
+      orderId: 'ORD-002',
+      issuedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      amount: 499,
+      currency: 'USD',
+      status: 'unavailable',
+      label: 'Invoice',
+    },
+  ],
+};
+
+/**
+ * Mock refunds per order.
+ *
+ * DB integration point:
+ *   SELECT * FROM refunds WHERE order_id = :orderId ORDER BY initiated_at DESC
+ *
+ * Most orders will have no refunds. ORD-002 has a processed partial refund
+ * to demonstrate the UI. Remove or clear the array for orders with no refunds.
+ */
+const MOCK_REFUNDS: Record<string, Refund[]> = {
+  'ORD-002': [
+    {
+      id: 'RFD-002-01',
+      orderId: 'ORD-002',
+      initiatedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
+      amount: 49,
+      currency: 'USD',
+      status: 'processed',
+      reason: 'Promotional discount applied retroactively',
+      referenceId: 'REF-GW-78432',
+    },
+  ],
+};
+
+/**
  * Mock tool entitlements per order.
  *
  * DB integration point:
@@ -335,21 +458,27 @@ const MOCK_TOOL_ACCESSES: Record<string, ToolAccess[]> = {
 };
 
 /**
- * Returns a single order, its payment history, and any bundled tool entitlements.
+ * Returns a single order together with its payment history, invoices, refunds,
+ * and bundled tool entitlements.
  *
  * Real version: GET /api/portal/orders/:orderId
- * Backend should JOIN tool_accesses on order_id in the same response.
+ * Backend should JOIN / sub-query tool_accesses, invoices, and refunds in one response.
  */
 export async function getOrder(
   orderId: string,
-): Promise<{ order: Order; payments: Payment[] }> {
+): Promise<{ order: Order; payments: Payment[]; invoices: Invoice[]; refunds: Refund[] }> {
   await delay(600);
   // Replace: return fetch(`/api/portal/orders/${orderId}`).then(r => r.json())
   const order = MOCK_ORDERS.find((o) => o.id === orderId);
   if (!order) throw new Error(`Order ${orderId} not found`);
   // DB integration point: JOIN with tool_accesses table (see MOCK_TOOL_ACCESSES above)
   const toolAccesses = MOCK_TOOL_ACCESSES[orderId] ?? [];
-  return { order: { ...order, toolAccesses }, payments: MOCK_PAYMENTS[orderId] ?? [] };
+  return {
+    order: { ...order, toolAccesses },
+    payments: MOCK_PAYMENTS[orderId] ?? [],
+    invoices: MOCK_INVOICES[orderId] ?? [],
+    refunds: MOCK_REFUNDS[orderId] ?? [],
+  };
 }
 
 /**

@@ -34,6 +34,7 @@ import {
 
 import { getOrders } from '../../services/portalService';
 import { Card } from '../../components/Card';
+import { ProductAccessCard } from '../../components/ProductAccessCard';
 import type { Order } from '../../types/order';
 
 // ─── Access status derivation ─────────────────────────────────────────────────
@@ -148,9 +149,10 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
 
   const isDirectLms = status.type === 'success' && !!order.lmsLink;
   const toolCount = (order.toolAccesses ?? []).length;
+  const products = order.purchasedProducts ?? [];
 
-  // Card inner content — shared between the two wrapper types below
-  const cardContent = (
+  // ── Order-level summary header (always shown, optionally clickable) ──────────
+  const orderHeader = (
     <div className="p-5 sm:p-6">
 
       {/* Program name + meta row */}
@@ -180,8 +182,8 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
         {status.detail}
       </p>
 
-      {/* Tool count chip */}
-      {toolCount > 0 && (
+      {/* Tool count chip — only shown when no per-product cards are present */}
+      {toolCount > 0 && products.length === 0 && (
         <div className="pl-7 mt-3">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-xs text-slate-600 font-medium">
             <WrenchScrewdriverIcon className="h-3.5 w-3.5" />
@@ -192,33 +194,80 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
     </div>
   );
 
-  // For direct-LMS success cards use a plain <a> so it opens in a new tab;
-  // for everything else wrap in a React Router <Link>.
-  if (isDirectLms) {
+  // ── Per-product access cards ──────────────────────────────────────────────────
+  // When an order has purchasedProducts, render each as its own ProductAccessCard
+  // so the learner sees a product-specific next step instead of a generic CTA.
+  const productSection = products.length > 0 ? (
+    <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+      <div className="border-t border-slate-100 pt-4">
+        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">
+          Your products
+        </p>
+        <div className="space-y-3">
+          {products.map((product) => (
+            <ProductAccessCard
+              key={product.id}
+              productName={product.name}
+              productTag={product.productTag}
+              accessType={product.accessType}
+              ctaUrl={product.accessUrl}
+              nsdcSteps={product.nsdcSteps}
+              customCta={
+                product.accessType === 'custom_cta' && product.ctaLabel && product.ctaUrl
+                  ? { label: product.ctaLabel, url: product.ctaUrl, description: product.ctaDescription }
+                  : undefined
+              }
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  // When no per-product cards are present and the order has a direct LMS link,
+  // make the whole card clickable (original behaviour).
+  if (products.length === 0) {
+    if (isDirectLms) {
+      return (
+        <Card className="cursor-pointer transition-shadow hover:shadow-md">
+          <a
+            href={order.lmsLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+            aria-label={`Open ${order.programName} in learner dashboard`}
+          >
+            {orderHeader}
+          </a>
+        </Card>
+      );
+    }
+
     return (
       <Card className="cursor-pointer transition-shadow hover:shadow-md">
-        <a
-          href={order.lmsLink}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          to={`/portal/access/${order.id}`}
           className="block"
-          aria-label={`Open ${order.programName} in learner dashboard`}
+          aria-label={`Go to access details for ${order.programName}`}
         >
-          {cardContent}
-        </a>
+          {orderHeader}
+        </Link>
       </Card>
     );
   }
 
+  // When per-product cards are present, the header links to the detail page
+  // but is not the sole click target — the product cards have their own CTAs.
   return (
-    <Card className="cursor-pointer transition-shadow hover:shadow-md">
+    <Card className="transition-shadow hover:shadow-md">
       <Link
         to={`/portal/access/${order.id}`}
         className="block"
         aria-label={`Go to access details for ${order.programName}`}
       >
-        {cardContent}
+        {orderHeader}
       </Link>
+      {productSection}
     </Card>
   );
 };

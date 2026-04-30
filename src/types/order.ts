@@ -4,6 +4,47 @@
 // They are separate from PostPaymentContext (which is the immediate checkout flow)
 // and are designed to support the self-serve order history portal.
 
+// ─── Purchased Product Access ───────────────────────────────────────────────────
+
+/**
+ * The access delivery mechanism for a single purchased product.
+ *   direct_link     — instant CTA: "Get access here" → opens a URL
+ *   email_24h       — informational: access arrives by email within 24 hours
+ *   nsdc_onboarding — 2-step flow: join WhatsApp group + complete NSDC registration
+ *   custom_cta      — escape hatch: any other next-step with a custom label + URL
+ */
+export type ProductAccessType = 'direct_link' | 'email_24h' | 'nsdc_onboarding' | 'custom_cta';
+
+/**
+ * A single purchased product (main program, add-on, bonus, etc.) attached to an
+ * order, with its own post-purchase access configuration.
+ *
+ * Add this to an Order's `purchasedProducts` array so the Get Access section can
+ * show a product-specific card for each item the learner has bought.
+ */
+export interface PurchasedProduct {
+  id: string;
+  /** Display name shown as the card title. */
+  name: string;
+  /** Short label shown as a pill badge, e.g. "Main Program", "Add-on", "Bonus". */
+  productTag?: string;
+  accessType: ProductAccessType;
+  /** Required when accessType === 'direct_link'. */
+  accessUrl?: string;
+  /** Required when accessType === 'nsdc_onboarding'. */
+  nsdcSteps?: {
+    whatsappUrl: string;
+    /** In-app route for the NSDC enrollment form, e.g. "/portal/enroll". */
+    nsdcEnrollPath: string;
+  };
+  /** Required when accessType === 'custom_cta'. */
+  ctaLabel?: string;
+  /** Required when accessType === 'custom_cta'. */
+  ctaUrl?: string;
+  /** Supporting description text shown alongside the custom CTA. */
+  ctaDescription?: string;
+}
+
 // ─── Tool Access ────────────────────────────────────────────────────────────────
 
 /**
@@ -166,6 +207,14 @@ export interface Order {
   toolAccesses?: ToolAccess[];
 
   /**
+   * Per-product access configurations for this order.
+   * When present, the Get Access section renders one ProductAccessCard per entry
+   * instead of the generic order-level access view.
+   * Backend: join with purchased_products + access_configs tables.
+   */
+  purchasedProducts?: PurchasedProduct[];
+
+  /**
    * ISO date (YYYY-MM-DD) when the learner's cohort starts.
    * Used to determine whether a partially-paid learner is close enough to cohort
    * start to be upgraded from preview → full LMS access (once payment threshold is met).
@@ -175,10 +224,67 @@ export interface Order {
 }
 
 /**
+ * A single invoice document linked to an order.
+ *
+ * Fetched as part of:
+ *   GET /api/portal/orders/:id  → { order, payments, invoices, refunds }
+ *
+ * Backend integration point:
+ *   SELECT * FROM invoices WHERE order_id = :orderId ORDER BY issued_at DESC
+ */
+export interface Invoice {
+  id: string;
+  orderId: string;
+
+  issuedAt: string;    // ISO datetime string
+  amount: number;
+  currency: string;
+
+  /**
+   * available   — PDF is ready; show downloadUrl
+   * pending     — being generated; no download yet
+   * unavailable — not applicable for this order (e.g. non-GST region)
+   */
+  status: 'available' | 'pending' | 'unavailable';
+
+  downloadUrl?: string; // direct link to PDF, present when status === 'available'
+
+  /** Human-readable label shown in the row, e.g. "GST Invoice", "Proforma Invoice" */
+  label?: string;
+}
+
+/**
+ * A single refund record linked to an order.
+ *
+ * Fetched as part of:
+ *   GET /api/portal/orders/:id  → { order, payments, invoices, refunds }
+ *
+ * Backend integration point:
+ *   SELECT * FROM refunds WHERE order_id = :orderId ORDER BY initiated_at DESC
+ */
+export interface Refund {
+  id: string;
+  orderId: string;
+
+  initiatedAt: string; // ISO datetime string
+  amount: number;
+  currency: string;
+
+  /** processed — credited back; pending — in-flight; rejected — declined */
+  status: 'processed' | 'pending' | 'rejected';
+
+  /** Short human-readable reason shown in the row, e.g. "Duplicate payment" */
+  reason?: string;
+
+  /** Gateway or bank reference number for tracking */
+  referenceId?: string;
+}
+
+/**
  * A single payment transaction linked to an order.
  *
  * Fetched as part of:
- *   GET /api/portal/orders/:id  → { order, payments }
+ *   GET /api/portal/orders/:id  → { order, payments, invoices, refunds }
  */
 export interface Payment {
   id: string;

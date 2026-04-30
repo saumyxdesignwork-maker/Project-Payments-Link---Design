@@ -30,6 +30,8 @@ export interface BumpProduct {
   originalPrice?: number;
   sku_id: string;
   nsdc_course_name: string;
+  /** Direct access URL shown as a "Get access here" CTA on the success page. Omit for email delivery. */
+  accessUrl?: string;
 }
 
 export interface AudioProduct {
@@ -41,6 +43,8 @@ export interface AudioProduct {
   sku_id: string;
   nsdc_course_name: string;
   durationLabel?: string;
+  /** Direct access URL shown as a "Get access here" CTA on the success page. Omit for email delivery. */
+  accessUrl?: string;
 }
 
 export interface DiscountWindow {

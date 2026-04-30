@@ -21,7 +21,7 @@ import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-export type AccessType = 'direct_link' | 'email_24h' | 'nsdc_onboarding';
+export type AccessType = 'direct_link' | 'email_24h' | 'nsdc_onboarding' | 'custom_cta';
 
 export interface NsdcOnboardingSteps {
   /** Full URL to the WhatsApp group. */
@@ -40,6 +40,12 @@ export interface ProductAccessCardProps {
   ctaUrl?: string;
   /** Required when accessType === 'nsdc_onboarding'. */
   nsdcSteps?: NsdcOnboardingSteps;
+  /** Required when accessType === 'custom_cta'. */
+  customCta?: {
+    label: string;
+    url: string;
+    description?: string;
+  };
 }
 
 // ─── Sub-renderers ─────────────────────────────────────────────────────────────
@@ -58,9 +64,11 @@ const StepCircle: React.FC<{ index: number; done: boolean }> = ({ index, done })
 
 export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
   productName,
+  productTag,
   accessType,
   ctaUrl,
   nsdcSteps,
+  customCta,
 }) => {
   const navigate = useNavigate();
 
@@ -168,12 +176,40 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
     );
   };
 
+  // ── custom_cta ───────────────────────────────────────────────────────────────
+  const renderCustomCta = () => {
+    if (!customCta) return null;
+    const { label, url, description } = customCta;
+
+    return (
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        {description && (
+          <p className="text-sm text-slate-600 flex-1 min-w-0">{description}</p>
+        )}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+        >
+          {label}
+          <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+        </a>
+      </div>
+    );
+  };
+
   // ── Card shell ──────────────────────────────────────────────────────────────
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
-      {/* Header */}
-      <div className="flex items-start gap-2">
+      {/* Header — product name + optional tag badge */}
+      <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-slate-900 leading-snug">{productName}</p>
+        {productTag && (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-normal bg-slate-100 text-slate-600 flex-shrink-0">
+            {productTag}
+          </span>
+        )}
       </div>
 
       {/* Divider */}
@@ -183,6 +219,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
       {accessType === 'direct_link' && renderDirectLink()}
       {accessType === 'email_24h' && renderEmail24h()}
       {accessType === 'nsdc_onboarding' && renderNsdcOnboarding()}
+      {accessType === 'custom_cta' && renderCustomCta()}
     </div>
   );
 };

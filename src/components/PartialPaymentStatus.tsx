@@ -450,18 +450,18 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
           )}
 
           {/* ── Payment Progress (expandable / collapsible) ── */}
-          <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+          <div className="border-t border-white/10 pt-4">
 
             {/* Always-visible summary — clicking anywhere here toggles the schedule */}
             <button
               type="button"
               onClick={() => setScheduleOpen((prev) => !prev)}
-              className="w-full p-4 text-left space-y-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-inset rounded-xl"
+              className="w-full text-left space-y-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg"
               aria-expanded={scheduleOpen}
             >
               {/* Title row + toggle label */}
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-medium text-white text-sm">Payment Progress</h3>
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Payment Progress</p>
                 <span className="flex items-center gap-1 text-xs text-slate-400">
                   {scheduleOpen ? 'Hide schedule' : 'View schedule'}
                   <ChevronDownIcon
@@ -506,10 +506,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
               ].join(' ')}
               aria-hidden={!scheduleOpen}
             >
-              <div
-                style={{ backgroundColor: PARTIAL_PAYMENT_HERO_FILL }}
-                className="border-t border-white/10 px-4 rounded-b-xl"
-              >
+              <div className="border-t border-white/10 mt-4 px-4">
 
                 {/* Booking amount row */}
                 <ScheduleRow
@@ -566,49 +563,53 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
 
           {/* ── Pay options (always visible when there is a pending balance) ── */}
           {installments.length > 0 && pendingAmount > 0 && (
-            <div className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-stretch gap-3 sm:gap-2">
-              {/* Pay full remaining */}
-              <div className="rounded-xl bg-black/25 border border-white/15 p-3 space-y-2 flex flex-col">
-                <p className="text-xs text-slate-400 leading-normal">Pay in full</p>
+            <div className="border-t border-white/10 pt-4 space-y-3">
+              {/* Pay in full row */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-400">Pay in full</p>
+                  {isDiscountActive && discountedRemainingAmount != null && discountedRemainingAmount < fullRemaining && (
+                    <p className="text-xs text-emerald-400/90 mt-0.5">
+                      Save {formatCurrency(fullRemaining - discountedRemainingAmount, currency)}!
+                    </p>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={onPayFullRemaining}
-                  className="w-full mt-auto bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-medium py-2.5 rounded-lg transition-colors"
+                  className="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
                 >
                   Pay {formatCurrency(effectiveRemaining, currency)}
                 </button>
-                {isDiscountActive && discountedRemainingAmount != null && discountedRemainingAmount < fullRemaining && (
-                  <p className="text-xs text-emerald-400/90 text-center">
-                    Save {formatCurrency(fullRemaining - discountedRemainingAmount, currency)}!
-                  </p>
-                )}
               </div>
 
-              <span className="hidden sm:flex items-center justify-center text-xs text-slate-500 py-1">or</span>
-              <span className="sm:hidden text-center text-xs text-slate-500">— or —</span>
-
-              {/* Pay next installment */}
-              <div className="rounded-xl bg-black/25 border border-white/15 p-3 space-y-2 flex flex-col h-full">
-                {nextInstallment ? (
-                  <>
-                    <p className="text-xs text-slate-400 leading-normal">
-                      Pay Part {nextIdx + 1}
-                    </p>
+              {nextInstallment ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span className="text-xs text-slate-500">or</span>
+                    <div className="flex-1 h-px bg-white/10" />
+                  </div>
+                  {/* Pay next installment row */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-slate-400">Pay Part {nextIdx + 1}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{nextInstallment.label}</p>
+                    </div>
                     <button
                       type="button"
                       onClick={onPayNextInstallment}
-                      className="w-full mt-auto bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-medium py-2.5 rounded-lg transition-colors"
+                      className="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
                     >
                       Pay {formatCurrency(nextInstallment.amount, currency)}
                     </button>
-                    <p className="text-xs text-slate-500 text-center">{nextInstallment.label}</p>
-                  </>
-                ) : (
-                  <p className="text-xs text-slate-400 py-2">
-                    All part payments are recorded. Pay any remaining balance above.
-                  </p>
-                )}
-              </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-slate-400">
+                  All part payments are recorded. Pay any remaining balance above.
+                </p>
+              )}
             </div>
           )}
         </div>

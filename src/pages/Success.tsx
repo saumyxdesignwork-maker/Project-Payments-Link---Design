@@ -1,7 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { CheckCircleIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { Card } from '../components/Card';
+import { ProductAccessCard } from '../components/ProductAccessCard';
 import { useStore } from '../store/useStore';
 import { PROGRAM_DATA } from '../data/paymentLink';
 import { formatCheckoutPrice, localizeInrAmountsInCopy } from '../utils/formatters';
@@ -12,11 +12,7 @@ import {
   partialBookingDueToday,
 } from '../utils/partialPricing';
 
-/** Countdown before redirecting to enrollment (NSDC step for India when not already on file). */
-const AUTO_ENROLL_REDIRECT_SECONDS = 8;
-
 export const SuccessPage: React.FC = () => {
-  const navigate = useNavigate();
   const {
     paymentMode,
     userDetails,
@@ -27,45 +23,6 @@ export const SuccessPage: React.FC = () => {
     selectedAudioIds,
   } = useStore();
   const isIndianCustomer = isIndianCountryCode(userDetails.countryCode);
-  const enrollRedirectLabel = isIndianCustomer ? 'NSDC registration' : 'email confirmation';
-
-  const usesAutoEnrollCountdown = paymentMode === 'partial' || paymentMode === 'full';
-
-  const [redirectSecondsLeft, setRedirectSecondsLeft] = React.useState<number | null>(() =>
-    usesAutoEnrollCountdown ? AUTO_ENROLL_REDIRECT_SECONDS : null,
-  );
-
-  React.useEffect(() => {
-    if (!usesAutoEnrollCountdown) return;
-    const skipEmailStepForNsdc = isIndianCustomer;
-    setRedirectSecondsLeft(AUTO_ENROLL_REDIRECT_SECONDS);
-    /** DOM timer ids (avoid NodeJS.Timeout vs number mismatch from @types/node). */
-    const timeouts: number[] = [];
-    for (let i = 0; i < AUTO_ENROLL_REDIRECT_SECONDS; i++) {
-      timeouts.push(
-        window.setTimeout(() => {
-          const left = AUTO_ENROLL_REDIRECT_SECONDS - i - 1;
-          if (left <= 0) {
-            setRedirectSecondsLeft(0);
-            // India: skip Step 1 and open NSDC (or enrollment if already on file).
-            // International: Step 1 email confirmation must run — do not pass auto-confirm state.
-            if (skipEmailStepForNsdc) {
-              navigate('/portal/enroll', {
-                state: { autoConfirmEmailFromCheckout: true },
-              });
-            } else {
-              navigate('/portal/enroll');
-            }
-          } else {
-            setRedirectSecondsLeft(left);
-          }
-        }, (i + 1) * 1000) as unknown as number,
-      );
-    }
-    return () => {
-      timeouts.forEach((t) => window.clearTimeout(t));
-    };
-  }, [usesAutoEnrollCountdown, navigate, isIndianCustomer]);
 
   const orderId = React.useMemo(() => `#4800${Math.floor(Math.random() * 1000000)}`, []);
 
@@ -239,38 +196,64 @@ export const SuccessPage: React.FC = () => {
           </div>
         )}
 
+        {/* ── What happens next — product access cards ─────────────── */}
+        <div className="mt-2 pt-4 border-t border-slate-200">
+          <h2 className="text-sm font-normal text-slate-500 mb-3">What happens next?</h2>
+          <div className="space-y-3">
+
+            {/* Main program card */}
+            {PROGRAM_DATA.isNsdcAligned && isIndianCustomer ? (
+              <ProductAccessCard
+                productName={PROGRAM_DATA.title}
+                productTag="Main Program"
+                accessType="nsdc_onboarding"
+                nsdcSteps={{
+                  whatsappUrl: PROGRAM_DATA.whatsapp_group_url ?? '#',
+                  nsdcEnrollPath: '/portal/enroll',
+                }}
+              />
+            ) : (
+              <ProductAccessCard
+                productName={PROGRAM_DATA.title}
+                productTag="Main Program"
+                accessType="direct_link"
+                ctaUrl={PROGRAM_DATA.redirect_url}
+              />
+            )}
+
+            {/* Bump product add-on cards */}
+            {(PROGRAM_DATA.bump_products ?? [])
+              .filter((b) => selectedBumpIds.includes(b.id))
+              .map((b) => (
+                <ProductAccessCard
+                  key={b.id}
+                  productName={b.name}
+                  productTag="Add-on"
+                  accessType={b.accessUrl ? 'direct_link' : 'email_24h'}
+                  ctaUrl={b.accessUrl}
+                />
+              ))}
+
+            {/* Audio product add-on cards */}
+            {(PROGRAM_DATA.audio_products ?? [])
+              .filter((a) => selectedAudioIds.includes(a.id))
+              .map((a) => (
+                <ProductAccessCard
+                  key={a.id}
+                  productName={a.name}
+                  productTag="Add-on"
+                  accessType={a.accessUrl ? 'direct_link' : 'email_24h'}
+                  ctaUrl={a.accessUrl}
+                />
+              ))}
+
+          </div>
+        </div>
+
         {/* ── Confirmation email note ──────────────────────────────── */}
-        <p className="text-xs text-slate-500 text-center mb-6">
+        <p className="text-xs text-slate-500 text-center mt-4">
           A confirmation has been sent to{' '}
           <span className="font-normal text-slate-700">{userDetails.email || 'your email'}</span>.
-        </p>
-
-        {/* ── Auto-enroll countdown (partial + full — no manual CTAs) ─────────────── */}
-        {usesAutoEnrollCountdown && redirectSecondsLeft !== null && redirectSecondsLeft > 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-5 text-center space-y-2">
-            <p className="text-sm font-medium text-slate-700">
-              {paymentMode === 'partial' ? 'Your booking is confirmed' : 'Your payment is confirmed'}
-            </p>
-            <p
-              className="text-4xl font-semibold tabular-nums text-primary leading-none"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              {redirectSecondsLeft}
-            </p>
-            <p className="text-xs text-slate-500">
-              {redirectSecondsLeft === 1
-                ? `Continuing to ${enrollRedirectLabel} in 1 second…`
-                : `Continuing to ${enrollRedirectLabel} in ${redirectSecondsLeft} seconds…`}
-            </p>
-          </div>
-        ) : null}
-
-        {/* ── Reassurance copy ── */}
-        <p className="text-xs text-slate-400 text-center mt-4">
-          {isIndianCustomer
-            ? "You'll be taken to NSDC registration next — have your government ID details ready."
-            : "You'll confirm your email on the next screen, then we'll finish setting up your access."}
         </p>
 
       </Card>

@@ -69,7 +69,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, showNsdc }) 
   const displaySteps = visibleSteps.map((s, i) => ({ step: s, label: STEP_LABELS[s], display: i + 1 }));
 
   return (
-    <div className="flex items-center justify-center gap-0 mb-8">
+    <div className="flex items-center justify-between w-full mb-5">
       {displaySteps.map(({ step, label, display }, idx) => {
         const isCompleted = currentStep > step;
         const isCurrent = currentStep === step;
@@ -78,18 +78,18 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, showNsdc }) 
             <div className="flex flex-col items-center">
               <div
                 className={[
-                  'h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors',
+                  'h-5 w-5 rounded-full flex items-center justify-center text-xs font-medium transition-colors',
                   isCompleted ? 'bg-green-500 text-white' : '',
-                  isCurrent ? 'bg-primary text-white ring-4 ring-primary/20' : '',
+                  isCurrent ? 'bg-primary text-white border-2 border-primary/60' : '',
                   !isCompleted && !isCurrent ? 'bg-slate-200 text-slate-500' : '',
                 ].join(' ')}
               >
-                {isCompleted ? <CheckCircleIcon className="h-4 w-4" /> : display}
+                {isCompleted ? <CheckCircleIcon className="h-3 w-3" /> : display}
               </div>
               <span
                 className={[
-                  'mt-1 text-xs font-normal whitespace-nowrap',
-                  isCurrent ? 'text-primary' : 'text-slate-400',
+                  'mt-1 text-xs whitespace-nowrap',
+                  isCurrent ? 'text-primary font-normal' : 'text-slate-300',
                   isCompleted ? 'text-green-600' : '',
                 ].join(' ')}
               >
@@ -99,7 +99,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, showNsdc }) 
             {idx < displaySteps.length - 1 && (
               <div
                 className={[
-                  'h-0.5 w-8 sm:w-12 mb-4 mx-1 transition-colors',
+                  'h-0.5 flex-1 mb-4 mx-1 transition-colors',
                   currentStep > step ? 'bg-green-400' : 'bg-slate-200',
                 ].join(' ')}
               />
@@ -655,7 +655,7 @@ const Step4Success: React.FC<Step4Props> = ({ ctx, enrolledCourse, confirmedEmai
               <ArrowRightIcon className="h-4 w-4 ml-2" />
             </Button>
           )}
-          <Button variant="outline" fullWidth onClick={() => navigate('/portal')}>
+          <Button variant="outline" fullWidth onClick={() => navigate('/portal/orders')}>
             View my orders
           </Button>
         </div>
@@ -709,7 +709,7 @@ const Step4Success: React.FC<Step4Props> = ({ ctx, enrolledCourse, confirmedEmai
             <ArrowRightIcon className="h-4 w-4 ml-2" />
           </Button>
         )}
-        <Button variant="outline" fullWidth onClick={() => navigate('/portal')}>
+        <Button variant="outline" fullWidth onClick={() => navigate('/portal/orders')}>
           View my orders
         </Button>
       </div>

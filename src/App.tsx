@@ -6,8 +6,11 @@ import { DetailsPage } from './pages/Details';
 import { ReviewPage } from './pages/Review';
 import { SuccessPage } from './pages/Success';
 import { PortalPage } from './pages/Portal';
-import { PortalHomePage } from './pages/PortalHome';
-import { OrderDetailPage } from './pages/OrderDetail';
+import { PortalLayout } from './pages/portal/PortalLayout';
+import { MyOrdersPage } from './pages/portal/MyOrdersPage';
+import { OrderDetailPage } from './pages/portal/OrderDetailPage';
+import { GetAccessPage } from './pages/portal/GetAccessPage';
+import { AccessDetailPage } from './pages/portal/AccessDetailPage';
 import { UseCaseIndexPage } from './pages/dev/UseCaseIndexPage';
 import { useStore } from './store/useStore';
 import { PaymentLinkFooter } from './components/PaymentLinkFooter';
@@ -100,9 +103,17 @@ function App() {
           {/* Post-payment enrollment wizard (immediate flow right after payment) */}
           <Route path="/portal/enroll" element={<PortalPage />} />
 
-          {/* Self-serve customer portal (order history) */}
-          <Route path="/portal" element={<PortalHomePage />} />
-          <Route path="/portal/orders/:orderId" element={<OrderDetailPage />} />
+          {/* Self-serve customer portal — two sections: My Orders + Get Access */}
+          <Route path="/portal" element={<PortalLayout />}>
+            {/* Default: redirect /portal → /portal/orders */}
+            <Route index element={<Navigate to="orders" replace />} />
+            {/* My Orders section — transaction / admin tasks */}
+            <Route path="orders" element={<MyOrdersPage />} />
+            <Route path="orders/:orderId" element={<OrderDetailPage />} />
+            {/* Get Access section — post-purchase onboarding and access */}
+            <Route path="access" element={<GetAccessPage />} />
+            <Route path="access/:orderId" element={<AccessDetailPage />} />
+          </Route>
 
           {/* Payment confirmed — shown immediately after pay, before registration */}
           <Route path="/success" element={<SuccessPage />} />
