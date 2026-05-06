@@ -112,7 +112,7 @@ const StatusBanner: React.FC<StatusBannerProps> = ({ order }) => {
         <p className={`text-sm font-medium leading-snug ${title}`}>
           Current status: {status.label}
         </p>
-        <p className={`text-xs mt-0.5 leading-normal ${detail}`}>
+        <p className={`text-sm mt-0.5 leading-normal ${detail}`}>
           {status.detail}
         </p>
       </div>

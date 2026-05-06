@@ -14,6 +14,7 @@ import { ExclamationTriangleIcon, CheckCircleIcon, InformationCircleIcon } from 
 import { Badge } from './Badge';
 import { Card } from './Card';
 import type { Order } from '../types/order';
+import { formatDate } from '../utils/formatters';
 
 // ─── Currency formatting ─────────────────────────────────────────────────────────
 
@@ -27,17 +28,6 @@ function formatAmount(amount: number, currency: string): string {
     currency,
     maximumFractionDigits: 0,
   }).format(amount);
-}
-
-/**
- * Formats an ISO datetime string to a readable date, e.g. "8 April 2026".
- */
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 }
 
 // ─── Access status derivation ────────────────────────────────────────────────────
@@ -139,30 +129,8 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
           </p>
         </div>
         <Badge variant={paymentStatus === 'paid' ? 'success' : 'warning'} className="flex-shrink-0">
-          {paymentStatus === 'paid' ? 'Paid in full' : 'Partially paid'}
+          {paymentStatus === 'paid' ? 'Paid' : 'Pending'}
         </Badge>
-      </div>
-
-      {/* ── Payment summary ── */}
-      <div className="bg-slate-50 rounded-lg px-4 py-3 space-y-1.5 text-sm">
-        <div className="flex justify-between">
-          <span className="text-slate-500">Paid</span>
-          <span className="font-medium text-slate-900">
-            {formatAmount(paidAmount, currency)}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-slate-500">Total</span>
-          <span className="text-slate-700">{formatAmount(totalAmount, currency)}</span>
-        </div>
-        {paymentStatus === 'partial' && pendingAmount > 0 && (
-          <div className="flex justify-between pt-1 border-t border-slate-200">
-            <span className="text-amber-700 font-medium">Pending</span>
-            <span className="font-semibold text-amber-700">
-              {formatAmount(pendingAmount, currency)}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* ── Access status ── */}

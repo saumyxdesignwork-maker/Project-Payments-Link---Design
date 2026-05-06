@@ -8,7 +8,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Accordion } from '../components/Accordion';
-import { formatCheckoutPrice } from '../utils/formatters';
+import { formatCheckoutPrice, formatCohortDate, getCohortRelativeDays, formatDate } from '../utils/formatters';
 import {
   applyCheckoutDiscount,
   courseInstallmentsRemainder,
@@ -74,8 +74,8 @@ const ProductMeta: React.FC<{
   if (!showIndianComplianceIds) return null;
   return (
     <div className="mt-0.5 space-y-0.5">
-      <p className="text-xs text-slate-400">SKU ID: {skuId}</p>
-      <p className="text-xs text-slate-400">NSDC: {nsdcName}</p>
+      <p className="text-sm text-slate-400">SKU ID: {skuId}</p>
+      <p className="text-sm text-slate-400">NSDC: {nsdcName}</p>
     </div>
   );
 };
@@ -133,7 +133,7 @@ const AddonCard: React.FC<AddonCardProps> = ({
     {/* White info zone */}
     <div className="bg-white p-4">
       {'durationLabel' in product && product.durationLabel && (
-        <span className="inline-block bg-slate-100 text-slate-500 text-xs font-normal px-2 py-0.5 rounded-full uppercase tracking-wide mb-2">
+        <span className="inline-block bg-slate-100 text-slate-500 text-xs font-normal px-2 py-0.5 rounded-full mb-2">
           {product.durationLabel}
         </span>
       )}
@@ -386,8 +386,8 @@ export const ReviewPage: React.FC = () => {
               </div>
               {isIndia && (
                 <div className="flex flex-wrap gap-x-4 mt-1">
-                  <span className="text-[13px] text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
-                  <span className="text-[13px] text-slate-400">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
+                  <span className="text-sm text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
+                  <span className="text-sm text-slate-400">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
                 </div>
               )}
               <div className={clsx('flex flex-wrap items-center gap-2 text-sm text-slate-500', isIndia ? 'mt-3' : 'mt-2')}>
@@ -409,14 +409,18 @@ export const ReviewPage: React.FC = () => {
                     style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
                   >
                     {PROGRAM_DATA.cohorts.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>{formatCohortDate(c.startDate)}</option>
                     ))}
                   </select>
                   {selectedCohort && (
-                    <div className="mt-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-md border border-slate-200">
-                      <p>{selectedCohort.description}</p>
-                      {selectedCohort.seatsLeft && selectedCohort.seatsLeft < 20 && (
-                        <p className="text-red-600 font-medium mt-1">Only {selectedCohort.seatsLeft} seats left!</p>
+                    <div className="mt-2 text-sm text-slate-500 px-1">
+                      <span>{selectedCohort.schedule}</span>
+                      {(() => {
+                        const hint = getCohortRelativeDays(selectedCohort.startDate);
+                        return hint ? <span className="ml-2 text-slate-400">({hint})</span> : null;
+                      })()}
+                      {selectedCohort.seatsLeft !== undefined && selectedCohort.seatsLeft < 20 && (
+                        <span className="ml-2 text-amber-700">· {selectedCohort.seatsLeft} spots left</span>
                       )}
                     </div>
                   )}
@@ -432,7 +436,7 @@ export const ReviewPage: React.FC = () => {
                   <p className="text-sm font-normal text-slate-500 mb-3">Choose payment option</p>
                   <div className="grid md:grid-cols-2 gap-3">
                     {[
-                      { mode: 'full' as const,    label: 'Full Payment',    amount: displayFeeDiscounted,                   sub: 'No future payments required' },
+                      { mode: 'full' as const,    label: 'Full Payment',    amount: displayFeeDiscounted,                   sub: '' },
                       {
                         mode: 'partial' as const,
                         label: 'Booking Amount',
@@ -456,7 +460,7 @@ export const ReviewPage: React.FC = () => {
                           </div>
                           <h3 className="font-medium text-base text-slate-900">{label}</h3>
                           <p className="text-xl font-semibold text-slate-900 mt-1">{formatPrice(amount)}</p>
-                          <p className="text-sm text-slate-500 mt-1">{sub}</p>
+                          {sub && <p className="text-sm text-slate-500 mt-1">{sub}</p>}
                         </div>
                       );
                     })}
@@ -470,7 +474,7 @@ export const ReviewPage: React.FC = () => {
                     <div className="space-y-3">
                       {PROGRAM_DATA.installments.map((inst, i) => (
                         <div key={i} className="flex justify-between items-baseline text-sm">
-                          <span className="text-slate-500">{inst.label}</span>
+                          <span className="text-slate-500">Due {formatDate(inst.dueDate)}</span>
                           <span className="font-medium text-slate-900">
                             {formatPrice(applyDisc(inst.amount))}
                           </span>
@@ -527,7 +531,7 @@ export const ReviewPage: React.FC = () => {
               {/* Bumps + Audio — "Don't miss out on these deals" */}
               {(bumpProducts.length > 0 || audioProducts.length > 0) && (
                 <section>
-                  <h3 className="text-base font-medium text-slate-900 mb-4">Don't miss out on these deals 📣</h3>
+                  <h3 className="text-base font-medium text-slate-900 mb-4">Optional Extras</h3>
                   <div className="space-y-4">
                     {bumpProducts.map((bp) => (
                       <AddonCard
@@ -608,7 +612,7 @@ export const ReviewPage: React.FC = () => {
                   <div className="flex justify-between items-start gap-2">
                     <span className="text-slate-700 text-sm">{p.name}</span>
                     <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
-                      +{formatPrice(applyDisc(p.price))}
+                      {formatPrice(applyDisc(p.price))}
                     </span>
                   </div>
                 </div>
@@ -616,75 +620,47 @@ export const ReviewPage: React.FC = () => {
 
               {paymentMode === 'partial' && (
                 <div className="border-t border-slate-100 pt-3 mb-3 space-y-2">
-                  {couponApplied ? (
-                    <div className="flex justify-between items-start gap-3 text-sm">
-                      <span className="text-slate-500 min-w-0 leading-snug">
-                        Booking + add-ons
-                        <br />
-                        <span className="text-slate-500">(due today, after coupon)</span>
-                      </span>
-                      <span className="text-slate-500 shrink-0 tabular-nums text-right">
-                        {formatPrice(partialDueTodayDiscounted)}
-                      </span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-start gap-3 text-sm">
-                        <span className="text-slate-500 min-w-0 leading-snug">
-                          Course booking
-                          <br />
-                          (due today)
-                        </span>
-                        <span className="text-slate-500 shrink-0 tabular-nums text-right">
-                          {formatPrice(PROGRAM_DATA.bookingAmount)}
-                        </span>
-                      </div>
-                      {addonsTotal > 0 && (
-                        <div className="flex justify-between items-start gap-3 text-sm">
-                          <span className="text-slate-500 min-w-0 leading-snug">
-                            Add-ons
-                            <br />
-                            (due today)
-                          </span>
-                          <span className="text-slate-500 shrink-0 tabular-nums text-right">
-                            {formatPrice(addonsTotal)}
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  <div className="flex justify-between items-start gap-3 text-sm">
-                    <span className="text-slate-500 min-w-0 leading-snug">Total due today</span>
-                    <span className="text-slate-500 shrink-0 tabular-nums text-right">
-                      {formatPrice(partialDueTodayDiscounted)}
+                  <div className="flex justify-between items-center gap-3 text-sm">
+                    <span className="text-slate-500">Total</span>
+                    <span className="text-slate-900 font-medium shrink-0 tabular-nums">
+                      {formatPrice(displayFeeDiscounted)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-start gap-3 text-sm pt-1 border-t border-slate-100">
-                    <span className="text-slate-500 min-w-0 leading-snug">
-                      Remaining
-                      <br />
-                      (course · on schedule)
-                    </span>
-                    <span className="text-slate-500 shrink-0 tabular-nums text-right">
+                  <div className="flex justify-between items-center gap-3 text-sm pt-1 border-t border-slate-100">
+                    <span className="text-slate-500">Remaining · scheduled</span>
+                    <span className="text-slate-500 shrink-0 tabular-nums">
                       {formatPrice(courseRemainderDiscounted)}
                     </span>
                   </div>
                 </div>
               )}
 
-              <div className="border-t border-slate-200 pt-4 mb-6">
+              <div className="border-t border-slate-200 pt-4 mb-3">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-slate-500 text-sm">Total Due Today</span>
+                  <span className="text-slate-500 text-sm">
+                    {paymentMode === 'partial' ? 'Paying today' : 'Total'}
+                  </span>
                   <span className="text-sm font-medium text-slate-900">{formatPrice(amountPayableToday)}</span>
                 </div>
               </div>
 
+              <div className="space-y-2 text-sm pt-3 mt-1 mb-6 border-t border-slate-100">
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-500">Cohort</span>
+                  <span className="text-slate-500 text-sm text-right">{selectedCohort?.name ?? '—'}</span>
+                </div>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-500">Applicable Taxes</span>
+                  <span className="text-slate-500 text-sm text-right">Included (GST inclusive)</span>
+                </div>
+              </div>
+
               {!isDuplicateFound && (
-                <div className="lg:hidden">
+                <div>
                   <Button
                     onClick={handlePay}
                     disabled={isPaying || isChecking}
-                    className="w-full font-semibold py-4 text-base shadow-md active:scale-[0.98]"
+                    className="w-full font-semibold py-3 text-base shadow-md active:scale-[0.98]"
                   >
                     {isPaying ? 'Processing…' : `Pay ${formatPrice(amountPayableToday)}`}
                   </Button>
@@ -746,7 +722,7 @@ export const ReviewPage: React.FC = () => {
                         <p className="text-xs text-red-600">{couponError}</p>
                       ) : null}
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
+                    <p className="text-sm text-slate-400 leading-relaxed">
                       Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off
                       full or partial checkout.
                     </p>
@@ -765,17 +741,6 @@ export const ReviewPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Applicable Taxes */}
-              <div className="space-y-2 text-sm pt-4 mt-4 border-t border-slate-100">
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-500">Cohort</span>
-                  <span className="text-slate-500 text-sm text-right">{selectedCohort?.name ?? '—'}</span>
-                </div>
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-500">Applicable Taxes</span>
-                  <span className="text-slate-500 text-sm text-right">Included (GST inclusive)</span>
-                </div>
-              </div>
 
             </Card>
 
@@ -796,8 +761,8 @@ export const ReviewPage: React.FC = () => {
         <div className="lg:hidden fixed bottom-0 left-0 right-0 py-4 px-[70px] bg-white border-t border-slate-200 shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-xs text-slate-500">Due Today</p>
-              <p className="text-sm font-medium text-slate-900">{formatPrice(amountPayableToday)}</p>
+              <p className="text-sm text-slate-500">Paying today</p>
+              <p className="text-base font-medium text-slate-900">{formatPrice(amountPayableToday)}</p>
             </div>
             <button className="text-sm text-primary font-medium underline" onClick={() => setIsSummaryOpen(!isSummaryOpen)}>
               {isSummaryOpen ? 'Hide Details' : 'View Details'}
@@ -812,7 +777,7 @@ export const ReviewPage: React.FC = () => {
               {addonsTotal > 0 && (
                 <div className="flex justify-between">
                   <span>Add-ons</span>
-                  <span>+{formatPrice(applyDisc(addonsTotal))}</span>
+                  <span>{formatPrice(applyDisc(addonsTotal))}</span>
                 </div>
               )}
               <div className="flex justify-between font-medium border-t pt-2">
@@ -827,33 +792,7 @@ export const ReviewPage: React.FC = () => {
         </div>
       )}
 
-      {/* Desktop sticky footer */}
-      {!isDuplicateFound && (
-        <div className="hidden lg:flex fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] py-4">
-          <div className="max-w-4xl mx-auto w-full px-4 flex items-center justify-between">
-            <div className="flex flex-col items-baseline gap-1.5">
-              <span className="text-sm text-slate-500">Total Due Today</span>
-              <span className="text-xl font-semibold text-slate-900">{formatPrice(amountPayableToday)}</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <Button
-                onClick={handlePay}
-                disabled={isPaying || isChecking}
-                className="w-full font-semibold px-8 py-3 text-base shadow-md active:scale-[0.98]"
-              >
-                {isPaying ? 'Processing…' : `Pay ${formatPrice(amountPayableToday)}`}
-              </Button>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
-                <span>Secure Payment · 256-bit SSL Encrypted</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="lg:hidden h-24" />
-      <div className="hidden lg:block h-20" />
     </div>
   );
 };

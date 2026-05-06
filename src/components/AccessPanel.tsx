@@ -29,18 +29,14 @@ import nsdcLogo from '../assets/nsdc-logo.svg';
 import { Button } from './Button';
 import { Input } from './Input';
 import { submitNsdcForOrder, submitEmailConfirmation } from '../services/portalService';
+import { formatDate } from '../utils/formatters';
 import type { NsdcFormData } from '../types/portal';
 import type { NsdcSubmittedProfile, Order } from '../types/order';
 
 function formatDobDisplay(iso?: string): string {
   if (!iso) return '—';
-  const [y, m, d] = iso.split('-').map(Number);
-  if (!y || !m || !d) return iso;
-  return new Date(y, m - 1, d).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  if (iso.split('-').length !== 3) return iso;
+  return formatDate(iso);
 }
 
 // ─── NSDC Form sub-panel ─────────────────────────────────────────────────────────
@@ -103,13 +99,11 @@ const NsdcFormPanel: React.FC<NsdcFormPanelProps> = ({
         <img src={nsdcLogo} alt="NSDC" className="h-16 w-auto" />
         <div>
           <h3 className="text-base font-medium text-slate-900">NSDC Registration</h3>
-          <p className="text-xs text-slate-500">
-            Required once to activate LMS access for this government-aligned program.
-          </p>
+
         </div>
       </div>
 
-      <p className="text-xs text-slate-500 bg-blue-50 border border-blue-100 rounded-lg p-3 mb-3">
+      <p className="text-sm text-slate-500 bg-blue-50 border border-blue-100 rounded-lg p-3 mb-3">
         These details are used to register you with the NSDC government portal.
         You only need to fill this once — it will be saved to your profile.
       </p>

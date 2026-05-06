@@ -22,16 +22,9 @@ import { Button } from './Button';
 import type { ToolAccess } from '../types/order';
 import emilyLogo from '../assets/emily-logo.svg';
 import perplexityLogo from '../assets/perplexity-logo.svg';
+import { formatDate } from '../utils/formatters';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
 
 function isFuture(iso: string): boolean {
   return new Date(iso) > new Date();

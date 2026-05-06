@@ -4,7 +4,7 @@ import { Card } from '../components/Card';
 import { ProductAccessCard } from '../components/ProductAccessCard';
 import { useStore } from '../store/useStore';
 import { PROGRAM_DATA } from '../data/paymentLink';
-import { formatCheckoutPrice, localizeInrAmountsInCopy } from '../utils/formatters';
+import { formatCheckoutPrice, localizeInrAmountsInCopy, formatCohortDate, formatDate } from '../utils/formatters';
 import { isIndianCountryCode } from '../data/countryCodes';
 import {
   applyCheckoutDiscount,
@@ -44,7 +44,7 @@ export const SuccessPage: React.FC = () => {
 
   // Find the last installment label for the remaining balance due date
   const lastInstallment = PROGRAM_DATA.installments?.at(-1);
-  const dueDateLabel = lastInstallment?.label?.split('Due ')?.[1] ?? 'a later date';
+  const dueDateLabel = lastInstallment ? formatDate(lastInstallment.dueDate) : 'a later date';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
@@ -80,13 +80,12 @@ export const SuccessPage: React.FC = () => {
             {selectedCohort && (
               <div className="flex justify-between gap-3 text-sm">
                 <span className="text-slate-500 shrink-0">Cohort</span>
-                <span className="font-normal text-slate-900 text-right">{selectedCohort.name}</span>
+                <span className="font-normal text-slate-900 text-right">{formatCohortDate(selectedCohort.startDate)}</span>
               </div>
             )}
           </div>
 
           <div className="pt-3 space-y-2">
-            <p className="text-xs font-medium text-slate-500 mb-1">This payment</p>
             {paymentMode === 'partial' ? (
               <>
                 {mult < 1 ? (
@@ -129,7 +128,7 @@ export const SuccessPage: React.FC = () => {
                   <span className="tabular-nums">{formatCheckoutPrice(amountPaid, isIndianCustomer)}</span>
                 </div>
                 <div className="flex justify-between gap-3 text-sm pt-1">
-                  <span className="text-slate-600">Remaining (course · on schedule)</span>
+                  <span className="text-slate-600">Remaining · on schedule</span>
                   <span className="font-medium text-amber-800 tabular-nums">
                     {formatCheckoutPrice(courseRemainder, isIndianCustomer)}
                   </span>
@@ -181,20 +180,6 @@ export const SuccessPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Partial-payment schedule reminder (no duplicate of remaining ₹) ── */}
-        {paymentMode === 'partial' && (
-          <div className="flex gap-3 bg-amber-50 border border-amber-200 rounded-lg p-3.5 mb-4">
-            <ClockIcon className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium text-amber-800 mb-0.5">Installments</p>
-              <p className="text-amber-700">
-                The remaining course fee is split across your payment schedule — complete all parts by{' '}
-                <span className="font-medium text-amber-900">{dueDateLabel}</span>. You will receive reminders before
-                each due date.
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* ── What happens next — product access cards ─────────────── */}
         <div className="mt-2 pt-4 border-t border-slate-200">

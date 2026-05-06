@@ -98,9 +98,7 @@ export const MyOrdersPage: React.FC = () => {
         {/* ── Page header ── */}
         <div className="mb-6">
           <h1 className="text-2xl font-medium text-slate-900">My Orders</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Your purchase history, payment status, and instalment schedule.
-          </p>
+
         </div>
 
         {/* ── Error state ── */}

@@ -21,6 +21,7 @@ import {
   ChevronDownIcon,
 } from '@heroicons/react/24/solid';
 import { Badge } from './Badge';
+import { formatDate } from '../utils/formatters';
 import nsdcLogo from '../assets/nsdc-logo.svg';
 import type { LmsEnrollmentStatus, ToolAccess, PartialInstallmentPlan, Payment } from '../types/order';
 
@@ -35,25 +36,6 @@ function formatCurrency(amount: number, currency: string): string {
     currency,
     maximumFractionDigits: 0,
   }).format(amount);
-}
-
-/** Calendar date from YYYY-MM-DD without UTC shift issues */
-function formatDueDate(isoDate: string): string {
-  const [y, m, d] = isoDate.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-/** "12 July 2025" from full ISO datetime */
-function formatPaidOn(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 }
 
 // ─── Payment-to-schedule matching ────────────────────────────────────────────────
@@ -155,7 +137,7 @@ const ScheduleRow: React.FC<ScheduleRowProps> = ({
         </div>
 
         <p className="text-sm text-slate-400 mt-0.5">
-          {paidOn ? `Paid on ${formatPaidOn(paidOn)}` : sublabel}
+          {paidOn ? `Paid on ${formatDate(paidOn)}` : sublabel}
         </p>
 
         <p className="text-sm font-medium text-white mt-1">{formatCurrency(amount, currency)}</p>
@@ -372,23 +354,6 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <h2 className="text-lg font-medium text-white">Booking Confirmed!</h2>
-                {/* Access pill — moved up from its own section to reduce visual noise */}
-                <span
-                  className={[
-                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0',
-                    isFullAccess
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
-                  ].join(' ')}
-                >
-                  <span
-                    className={[
-                      'h-1.5 w-1.5 rounded-full',
-                      isFullAccess ? 'bg-emerald-400' : 'bg-amber-400',
-                    ].join(' ')}
-                  />
-                  {isFullAccess ? 'Full Access' : 'Preview Access'}
-                </span>
               </div>
               {(email || phoneDisplay) && (
                 <p className="text-sm text-slate-300 mt-1 truncate">
@@ -511,7 +476,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                 {/* Booking amount row */}
                 <ScheduleRow
                   label="Booking Amount Paid"
-                  sublabel={`Paid on ${formatPaidOn(lastPaidAt)}`}
+                  sublabel={`Paid on ${formatDate(lastPaidAt)}`}
                   amount={bookingAmount}
                   currency={currency}
                   status={paidScheduleSteps >= 1 ? 'paid' : 'pending'}
@@ -531,8 +496,8 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                   return (
                     <ScheduleRow
                       key={inst.dueDate + String(idx)}
-                      label={`Part Payment ${idx + 1}`}
-                      sublabel={inst.label}
+                      label={`Scheduled payment ${idx + 1}`}
+                      sublabel={`Due ${formatDate(inst.dueDate)}`}
                       amount={inst.amount}
                       currency={currency}
                       status={paid ? 'paid' : 'pending'}
@@ -552,7 +517,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                   <p className="text-sm text-slate-400 py-3 border-t border-white/10 leading-normal">
                     Complete all payments by{' '}
                     <span className="font-medium text-slate-200">
-                      {formatDueDate(lastDue.dueDate)}
+                      {formatDate(lastDue.dueDate)}
                     </span>{' '}
                     to unlock full access.
                   </p>
@@ -567,7 +532,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
               {/* Pay in full row */}
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs text-slate-400">Pay in full</p>
+                  <p className="text-sm text-slate-400">Pay in full</p>
                   {isDiscountActive && discountedRemainingAmount != null && discountedRemainingAmount < fullRemaining && (
                     <p className="text-xs text-emerald-400/90 mt-0.5">
                       Save {formatCurrency(fullRemaining - discountedRemainingAmount, currency)}!
@@ -593,8 +558,8 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                   {/* Pay next installment row */}
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs text-slate-400">Pay Part {nextIdx + 1}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{nextInstallment.label}</p>
+                      <p className="text-xs text-slate-400">Scheduled payment {nextIdx + 1}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Due {formatDate(nextInstallment.dueDate)}</p>
                     </div>
                     <button
                       type="button"

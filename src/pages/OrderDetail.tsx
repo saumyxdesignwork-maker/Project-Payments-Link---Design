@@ -34,6 +34,7 @@ import { ToolAccessList } from '../components/ToolAccessList';
 import { PartialPaymentStatus } from '../components/PartialPaymentStatus';
 import { NsdcAlertCard } from '../components/NsdcAlertCard';
 import { getOrder } from '../services/portalService';
+import { formatDate, formatDateTime } from '../utils/formatters';
 import type { Order, Payment, LmsEnrollmentStatus } from '../types/order';
 
 // ─── Access upgrade logic ─────────────────────────────────────────────────────────
@@ -88,23 +89,6 @@ function formatAmount(amount: number, currency: string): string {
   }).format(amount);
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
 
 // ─── Payment status helpers ──────────────────────────────────────────────────────
 
@@ -149,7 +133,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <h2 className="text-lg font-medium text-slate-900 leading-snug">{programName}</h2>
         <Badge variant={paymentStatus === 'paid' ? 'success' : 'warning'}>
-          {paymentStatus === 'paid' ? 'Paid in full' : 'Partially paid'}
+          {paymentStatus === 'paid' ? 'Paid' : 'Pending'}
         </Badge>
       </div>
 

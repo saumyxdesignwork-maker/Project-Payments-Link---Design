@@ -25,9 +25,7 @@ import { Link } from 'react-router-dom';
 import {
   KeyIcon,
   ExclamationCircleIcon,
-  ExclamationTriangleIcon,
   CheckCircleIcon,
-  InformationCircleIcon,
   WrenchScrewdriverIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
@@ -35,6 +33,7 @@ import {
 import { getOrders } from '../../services/portalService';
 import { Card } from '../../components/Card';
 import { ProductAccessCard } from '../../components/ProductAccessCard';
+import { formatDate } from '../../utils/formatters';
 import type { Order } from '../../types/order';
 
 // ─── Access status derivation ─────────────────────────────────────────────────
@@ -97,13 +96,6 @@ export function getAccessStatus(order: Order): {
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatCohortDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
 // ─── Access status badge ──────────────────────────────────────────────────────
 
 interface AccessStatusBadgeProps {
@@ -134,18 +126,6 @@ interface AccessCardProps {
 const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
   const status = getAccessStatus(order);
 
-  const StatusIcon =
-    status.type === 'action'
-      ? ExclamationTriangleIcon
-      : status.type === 'success'
-      ? CheckCircleIcon
-      : InformationCircleIcon;
-
-  const iconClass = {
-    action: 'text-amber-500',
-    info: 'text-blue-500',
-    success: 'text-green-500',
-  }[status.type];
 
   const isDirectLms = status.type === 'success' && !!order.lmsLink;
   const toolCount = (order.toolAccesses ?? []).length;
@@ -157,7 +137,6 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
 
       {/* Program name + meta row */}
       <div className="flex items-start gap-2.5 mb-3">
-        <StatusIcon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${iconClass}`} />
         <div className="min-w-0 flex-1 flex flex-col gap-1.5">
           {/* Title + badge on same row, space-between */}
           <div className="flex items-center justify-between gap-2">
@@ -171,14 +150,14 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
           {order.cohortStartDate && (
             <span className="inline-flex items-center gap-1 text-sm text-slate-500">
               <CalendarDaysIcon className="h-3.5 w-3.5 flex-shrink-0" />
-              Cohort: {formatCohortDate(order.cohortStartDate)}
+              Cohort: {formatDate(order.cohortStartDate)}
             </span>
           )}
         </div>
       </div>
 
       {/* Status description */}
-      <p className="text-sm text-slate-500 leading-relaxed pl-7">
+      <p className="text-sm text-slate-500 leading-relaxed">
         {status.detail}
       </p>
 
@@ -354,9 +333,7 @@ export const GetAccessPage: React.FC = () => {
         {/* ── Page header ── */}
         <div className="mb-6">
           <h1 className="text-2xl font-medium text-slate-900">Get Access</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Complete registration and access your enrolled programs.
-          </p>
+
         </div>
 
         {/* ── Error state ── */}

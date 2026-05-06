@@ -10,14 +10,7 @@ import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 import nsdcLogo from '../assets/nsdc-logo.svg';
 import type { Order } from '../types/order';
-
-function formatPurchaseDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
+import { formatDate } from '../utils/formatters';
 
 export interface LegacyNsdcCatchUpCardProps {
   orders: Order[];
@@ -35,12 +28,6 @@ export const LegacyNsdcCatchUpCard: React.FC<LegacyNsdcCatchUpCardProps> = ({ or
             <h2 className="text-base font-medium text-slate-900 leading-snug">
               NSDC details for an earlier program
             </h2>
-            <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-              For at least one Indian purchase we could not collect NSDC registration at checkout
-              because government mandate details were not available for that cohort yet. Rules have
-              since been updated — please complete a one-time NSDC profile for each affected order so
-              we can keep your certification aligned.
-            </p>
           </div>
         </div>
 
@@ -63,7 +50,7 @@ export const LegacyNsdcCatchUpCard: React.FC<LegacyNsdcCatchUpCardProps> = ({ or
                 <p className="text-xs text-slate-500">
                   Order <span className="font-mono text-slate-600">{o.id}</span>
                   <span className="text-slate-400"> · </span>
-                  Purchased {formatPurchaseDate(o.createdAt)}
+                  Purchased {formatDate(o.createdAt)}
                 </p>
               </div>
               <Link

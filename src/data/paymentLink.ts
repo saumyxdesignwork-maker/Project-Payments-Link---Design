@@ -2,8 +2,8 @@
 
 export interface Cohort {
   id: string;
-  name: string;
-  description: string;
+  startDate: string;   // ISO-8601, e.g. "2025-12-14"
+  schedule: string;    // e.g. "7–9 PM IST" or "Weekend Track (IST)"
   seatsLeft?: number;
 }
 
@@ -103,10 +103,10 @@ export const PROGRAM_DATA: ProgramDetails = {
   ],
 
   cohorts: [
-    { id: "c3", name: "Saturday, 14 Dec 2025",  description: "14 Dec 2025 – 14 Jun 2026 · 7–9 PM IST", seatsLeft: 5 },
-    { id: "c4", name: "Monday, 18 Dec 2025",    description: "18 Dec 2025 – 18 Jun 2026 · Weekend Track (IST)", seatsLeft: 12 },
-    { id: "c5", name: "Saturday, 04 Jan 2026",  description: "04 Jan 2026 – 04 Jul 2026 · 7–9 PM IST" },
-    { id: "c6", name: "Monday, 12 Jan 2026",    description: "12 Jan 2026 – 12 Jul 2026 · Weekend Track (IST)" },
+    { id: "c3", startDate: "2025-12-14", schedule: "7–9 PM IST",         seatsLeft: 5 },
+    { id: "c4", startDate: "2025-12-18", schedule: "Weekend Track (IST)", seatsLeft: 12 },
+    { id: "c5", startDate: "2026-01-04", schedule: "7–9 PM IST" },
+    { id: "c6", startDate: "2026-01-12", schedule: "Weekend Track (IST)" },
   ],
   defaultCohortId: "c3",
 
@@ -121,8 +121,8 @@ export const PROGRAM_DATA: ProgramDetails = {
   bump_products: [
     {
       id: "bp1",
-      name: "Get ₹7,001 off on 250+ ChatGPT prompts & 50+ AI tools list",
-      description: "For just ₹699 you will get access to insanely powerful 250+ ChatGPT prompts which you can paste to superpower your ChatGPT skills. Also, get access to a list of 50+ tools which will level up your no-code AI journey. You will not find this offer elsewhere.",
+      name: "ChatGPT Prompts & AI Tools Pack",
+      description: "250+ curated prompts and a list of 50+ AI tools to accelerate your workflow.",
       price: 13000,
       originalPrice: 20000,
       sku_id: "CGPT-PROMPTS-2025",
@@ -131,7 +131,7 @@ export const PROGRAM_DATA: ProgramDetails = {
     {
       id: "bp2",
       name: "Interview Prep Bundle",
-      description: "Mock interviews, resume review, and a 1:1 career coaching session. Land your next AI role faster.",
+      description: "Mock interviews, resume review, and a 1:1 career coaching session.",
       price: 1499,
       originalPrice: 4999,
       sku_id: "IPB-2025-ADDON",
@@ -143,7 +143,7 @@ export const PROGRAM_DATA: ProgramDetails = {
     {
       id: "ap1",
       name: "AI Fundamentals Audio Course",
-      description: "Listen and learn on the go — 8 hours of curated AI fundamentals narrated by industry experts.",
+      description: "8 hours of AI fundamentals — learn on the go.",
       price: 999,
       originalPrice: 2999,
       sku_id: "AFAC-2025-AUDIO",

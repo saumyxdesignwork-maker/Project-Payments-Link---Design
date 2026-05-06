@@ -100,7 +100,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
       </div>
       <div>
         <p className="text-sm font-medium text-slate-800">Access coming to your inbox</p>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-sm text-slate-500 mt-0.5">
           You'll receive access details by email within 24 hours. Check your spam folder if you
           don't see it.
         </p>
@@ -115,61 +115,58 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
 
     return (
       <div className="space-y-4">
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-sm text-slate-500 leading-[145%]">
           Complete both steps below to activate your program access and government-certified
           certification.
         </p>
 
-        {/* Step 1 — WhatsApp */}
-        <div
-          className={`rounded-lg border p-3.5 flex items-start gap-3 transition-colors ${
-            whatsappJoined
-              ? 'bg-green-50 border-green-200'
-              : 'bg-slate-50 border-slate-200'
-          }`}
-        >
-          <StepCircle index={1} done={whatsappJoined} />
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm font-medium leading-snug ${whatsappJoined ? 'text-green-800 line-through decoration-green-400' : 'text-slate-800'}`}>
-              Join the WhatsApp community
-            </p>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Get program updates, peer support, and cohort announcements.
-            </p>
-            {!whatsappJoined && (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setWhatsappJoined(true)}
-                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#25D366] text-white text-sm font-normal hover:bg-[#1ebe5d] transition-colors focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-1"
-              >
-                <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
-                Join WhatsApp group
-              </a>
-            )}
+        {/* Steps auto-layout — 16px gap */}
+        <div className="flex flex-col gap-4">
+          {/* Step 1 — WhatsApp */}
+          <div className="flex items-start gap-3">
+            <StepCircle index={1} done={whatsappJoined} />
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-medium leading-snug ${whatsappJoined ? 'text-green-700 line-through decoration-green-400' : 'text-slate-800'}`}>
+                Join the WhatsApp community
+              </p>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Get program updates, peer support, and cohort announcements.
+              </p>
+              {!whatsappJoined && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setWhatsappJoined(true)}
+                  className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-white text-sm font-normal hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                >
+                  <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
+                  Join WhatsApp group
+                </a>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Step 2 — NSDC registration */}
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3.5 flex items-start gap-3">
-          <StepCircle index={2} done={false} />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-800 leading-snug">
-              Complete NSDC registration
-            </p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Required once to activate your government-certified LMS access. Takes under 2
-              minutes.
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate(nsdcEnrollPath)}
-              className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-700 text-white text-sm font-normal hover:bg-amber-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-600 focus:ring-offset-1"
-            >
-              Complete registration
-              <ArrowTopRightOnSquareIcon className="h-3 w-3" />
-            </button>
+          {/* Step 2 — NSDC registration */}
+          <div className="flex items-start gap-3">
+            <StepCircle index={2} done={false} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-800 leading-snug">
+                Complete NSDC registration
+              </p>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Required once to activate your government-certified LMS access. Takes under 2
+                minutes.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate(nsdcEnrollPath)}
+                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-white text-sm font-normal hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+              >
+                Complete registration
+                <ArrowTopRightOnSquareIcon className="h-3 w-3" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

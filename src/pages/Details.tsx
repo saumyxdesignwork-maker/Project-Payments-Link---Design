@@ -8,7 +8,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
 import { Accordion } from '../components/Accordion';
-import { formatCheckoutPrice } from '../utils/formatters';
+import { formatCheckoutPrice, formatCohortDate, getCohortRelativeDays } from '../utils/formatters';
 import nsdcLogo from '../assets/nsdc-logo.svg';
 
 export const DetailsPage: React.FC = () => {
@@ -66,9 +66,12 @@ export const DetailsPage: React.FC = () => {
                </Badge>
             )}
           </div>
-          <p className="text-slate-600 font-normal text-sm">
-            The corresponding NSDC program name is Gen AI for Tech Professionals - On Demand.
-          </p>
+          {isIndia && (
+            <div className="flex flex-wrap gap-x-4 mt-1">
+              <span className="text-sm text-slate-600">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
+              <span className="text-sm text-slate-600">SKU ID: {PROGRAM_DATA.sku_id}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -77,7 +80,7 @@ export const DetailsPage: React.FC = () => {
         <div className="space-y-8">
           <section>
             <h2 className="text-base font-medium text-slate-900 mb-4">Select Cohort</h2>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <select
                 value={selectedCohortId}
                 onChange={(e) => setCohortId(e.target.value)}
@@ -91,17 +94,19 @@ export const DetailsPage: React.FC = () => {
               >
                 {PROGRAM_DATA.cohorts.map((cohort) => (
                   <option key={cohort.id} value={cohort.id}>
-                    {cohort.name}
+                    {formatCohortDate(cohort.startDate)}
                   </option>
                 ))}
               </select>
               {selectedCohort && (
-                <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md border border-slate-200">
-                  <p>{selectedCohort.description}</p>
-                  {selectedCohort.seatsLeft && selectedCohort.seatsLeft < 20 && (
-                     <p className="text-red-600 font-normal mt-1">
-                       Only {selectedCohort.seatsLeft} seats left!
-                     </p>
+                <div className="text-sm text-slate-500 px-1">
+                  <span>{selectedCohort.schedule}</span>
+                  {(() => {
+                    const hint = getCohortRelativeDays(selectedCohort.startDate);
+                    return hint ? <span className="ml-2 text-slate-400">({hint})</span> : null;
+                  })()}
+                  {selectedCohort.seatsLeft !== undefined && selectedCohort.seatsLeft < 20 && (
+                    <span className="ml-2 text-amber-700">· {selectedCohort.seatsLeft} spots left</span>
                   )}
                 </div>
               )}
@@ -178,8 +183,6 @@ export const DetailsPage: React.FC = () => {
                 {/* Show the selected country name as a hint */}
                 <p className="mt-1 text-xs text-slate-400">
                   {COUNTRY_BY_CODE[userDetails.countryCode]?.name}
-                  {isIndianCountryCode(userDetails.countryCode) &&
-                    ' · NSDC certification details will be collected after payment'}
                 </p>
                 {errors.phone && (
                   <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
@@ -234,7 +237,7 @@ export const DetailsPage: React.FC = () => {
 
               <div className="mt-4 pt-4 border-t border-slate-200">
                 <p className="text-sm text-slate-700">
-                  <span className="font-medium text-primary">Pay {formatCheckoutPrice(PROGRAM_DATA.bookingAmount, isIndia)} today</span> to confirm your seat in {selectedCohort?.name}.
+                  Payment option starting from {formatCheckoutPrice(PROGRAM_DATA.bookingAmount, isIndia)}.
                 </p>
               </div>
             </div>
