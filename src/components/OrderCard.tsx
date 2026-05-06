@@ -18,17 +18,6 @@ import { formatDate } from '../utils/formatters';
 
 // ─── Currency formatting ─────────────────────────────────────────────────────────
 
-/**
- * Formats an amount using the order's own currency code.
- * Falls back to INR formatting for Indian orders.
- */
-function formatAmount(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 // ─── Access status derivation ────────────────────────────────────────────────────
 
@@ -88,13 +77,8 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
     id,
     programName,
     createdAt,
-    totalAmount,
-    currency,
     paymentStatus,
-    pendingAmount,
   } = order;
-
-  const paidAmount = totalAmount - pendingAmount;
   const accessStatus = getAccessStatus(order);
 
   const AccessIcon =

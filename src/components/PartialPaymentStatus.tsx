@@ -300,7 +300,6 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
   nsdcRequired = false,
   nsdcCompleted = false,
   onNsdcCtaClick,
-  effectiveLmsStatus = 'dummy',
   bookingToolAccesses = [],
   flushTopWithCardShell = false,
 }) => {
@@ -327,7 +326,6 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
 
   const progressFraction = Math.min(1, paidScheduleSteps / totalSteps);
 
-  const isFullAccess = effectiveLmsStatus === 'real';
   const showNsdcNudge = nsdcRequired && !nsdcCompleted;
 
   // Payments matched positionally to schedule steps (oldest first)

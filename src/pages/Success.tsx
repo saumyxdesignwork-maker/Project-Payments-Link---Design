@@ -1,10 +1,10 @@
 import React from 'react';
-import { CheckCircleIcon, ClockIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { Card } from '../components/Card';
 import { ProductAccessCard } from '../components/ProductAccessCard';
 import { useStore } from '../store/useStore';
 import { PROGRAM_DATA } from '../data/paymentLink';
-import { formatCheckoutPrice, localizeInrAmountsInCopy, formatCohortDate, formatDate } from '../utils/formatters';
+import { formatCheckoutPrice, localizeInrAmountsInCopy, formatCohortDate } from '../utils/formatters';
 import { isIndianCountryCode } from '../data/countryCodes';
 import {
   applyCheckoutDiscount,
@@ -41,10 +41,6 @@ export const SuccessPage: React.FC = () => {
     ...audioProducts.filter((a) => selectedAudioIds.includes(a.id)).map((p) => ({ id: p.id, name: p.name, price: p.price })),
   ];
   const courseRemainder = disc(courseInstallmentsRemainder());
-
-  // Find the last installment label for the remaining balance due date
-  const lastInstallment = PROGRAM_DATA.installments?.at(-1);
-  const dueDateLabel = lastInstallment ? formatDate(lastInstallment.dueDate) : 'a later date';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">

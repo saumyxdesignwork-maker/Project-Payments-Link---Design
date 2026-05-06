@@ -25,7 +25,6 @@ import { Link } from 'react-router-dom';
 import {
   KeyIcon,
   ExclamationCircleIcon,
-  CheckCircleIcon,
   WrenchScrewdriverIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
