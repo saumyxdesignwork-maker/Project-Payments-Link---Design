@@ -19,7 +19,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeftIcon,
   ExclamationCircleIcon,
   ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
@@ -100,9 +99,9 @@ function PaymentStatusIcon({ status }: { status: Payment['status'] }) {
 
 function paymentStatusBadge(status: Payment['status']) {
   const map: Record<Payment['status'], { label: string; variant: 'success' | 'error' | 'warning' }> = {
-    success: { label: 'SUCCESS', variant: 'success' },
-    failed: { label: 'FAILED', variant: 'error' },
-    pending: { label: 'PENDING', variant: 'warning' },
+    success: { label: 'Success', variant: 'success' },
+    failed: { label: 'Failed', variant: 'error' },
+    pending: { label: 'Pending', variant: 'warning' },
   };
   return map[status];
 }
@@ -152,7 +151,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
         </div>
         <div className="flex justify-between sm:flex-col sm:gap-0.5">
           <span className="text-slate-500">Country</span>
-          <span className="text-slate-800">{isIndian ? '🇮🇳 India' : `🌍 ${countryCode}`}</span>
+          <span className="text-slate-800">{isIndian ? 'India' : countryCode}</span>
         </div>
       </div>
 
@@ -160,7 +159,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
       <div className="border-t border-slate-100 pt-3 space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-slate-500">Paid</span>
-          <span className="font-semibold text-green-700">{formatAmount(paidAmount, currency)}</span>
+          <span className="font-semibold text-slate-900">{formatAmount(paidAmount, currency)}</span>
         </div>
         {paymentStatus === 'partial' && (
           <div className="flex justify-between">
@@ -313,14 +312,6 @@ export const OrderDetailPage: React.FC = () => {
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* ── Back link ── */}
-        <Link
-          to="/portal"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-primary transition-colors"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to My Orders
-        </Link>
-
         {/* ── Error state ── */}
         {error && (
           <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">

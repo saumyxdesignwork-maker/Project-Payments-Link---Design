@@ -635,23 +635,17 @@ export const ReviewPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="border-t border-slate-200 pt-4 mb-3">
+              <div className="flex justify-between items-start gap-2 text-sm py-2 border-t border-slate-100 mt-1">
+                <span className="text-slate-500">Applicable Taxes</span>
+                <span className="text-slate-500 text-right">₹0</span>
+              </div>
+
+              <div className="border-t border-slate-200 pt-4 mb-6">
                 <div className="flex justify-between items-baseline">
                   <span className="text-slate-500 text-sm">
                     {paymentMode === 'partial' ? 'Paying today' : 'Total'}
                   </span>
                   <span className="text-sm font-medium text-slate-900">{formatPrice(amountPayableToday)}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-sm pt-3 mt-1 mb-6 border-t border-slate-100">
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-500">Cohort</span>
-                  <span className="text-slate-500 text-sm text-right">{selectedCohort?.name ?? '—'}</span>
-                </div>
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-500">Applicable Taxes</span>
-                  <span className="text-slate-500 text-sm text-right">Included (GST inclusive)</span>
                 </div>
               </div>
 

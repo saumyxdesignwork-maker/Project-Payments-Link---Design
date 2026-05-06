@@ -31,6 +31,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { getOrders } from '../../services/portalService';
+import { useStore } from '../../store/useStore';
 import { Card } from '../../components/Card';
 import { ProductAccessCard } from '../../components/ProductAccessCard';
 import { formatDate } from '../../utils/formatters';
@@ -304,6 +305,7 @@ const EmptyState: React.FC = () => (
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const GetAccessPage: React.FC = () => {
+  const { userDetails, setUserDetails } = useStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -312,7 +314,14 @@ export const GetAccessPage: React.FC = () => {
     setLoading(true);
     // Real version: GET /api/portal/orders  (auth via session cookie / JWT)
     getOrders()
-      .then(setOrders)
+      .then((fetched) => {
+        setOrders(fetched);
+        // Seed the header email from the order data when the store has no email.
+        const portalEmail = fetched[0]?.customerEmail;
+        if (!userDetails.email && portalEmail) {
+          setUserDetails({ email: portalEmail });
+        }
+      })
       .catch(() => setError("We couldn't load your programs. Please refresh or contact support."))
       .finally(() => setLoading(false));
   }, []);

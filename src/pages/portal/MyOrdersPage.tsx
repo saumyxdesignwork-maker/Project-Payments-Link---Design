@@ -73,7 +73,7 @@ const EmptyState: React.FC = () => (
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const MyOrdersPage: React.FC = () => {
-  const { userDetails } = useStore();
+  const { userDetails, setUserDetails } = useStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -86,7 +86,15 @@ export const MyOrdersPage: React.FC = () => {
     setLoading(true);
     // Real version: GET /api/portal/orders  (auth via session cookie / JWT)
     getOrders()
-      .then(setOrders)
+      .then((fetched) => {
+        setOrders(fetched);
+        // Seed the header email from the order data when the store has no email
+        // (e.g. user landed directly on /portal without going through checkout).
+        const portalEmail = fetched[0]?.customerEmail;
+        if (!userDetails.email && portalEmail) {
+          setUserDetails({ email: portalEmail });
+        }
+      })
       .catch(() => setError("We couldn't load your orders. Please refresh or contact support."))
       .finally(() => setLoading(false));
   }, []);

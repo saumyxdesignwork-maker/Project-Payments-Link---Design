@@ -51,10 +51,10 @@ const STATUS_CONFIG: Record<
   ToolAccess['status'],
   { label: string; variant: BadgeVariant }
 > = {
-  active:              { label: 'ACTIVE',               variant: 'success' },
-  pending_activation:  { label: 'PENDING ACTIVATION',   variant: 'warning' },
-  expired:             { label: 'EXPIRED',              variant: 'default' },
-  revoked:             { label: 'ACCESS REVOKED',       variant: 'error'   },
+  active:              { label: 'Active',               variant: 'success' },
+  pending_activation:  { label: 'Pending activation',   variant: 'warning' },
+  expired:             { label: 'Expired',              variant: 'default' },
+  revoked:             { label: 'Access revoked',       variant: 'error'   },
 };
 
 // ─── Single tool row ──────────────────────────────────────────────────────────────
