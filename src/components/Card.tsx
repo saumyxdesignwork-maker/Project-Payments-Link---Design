@@ -4,12 +4,20 @@ import { twMerge } from 'tailwind-merge';
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
+  variant?: 'default' | 'subtle' | 'inverse' | 'skeleton';
 }
 
-export const Card: React.FC<CardProps> = ({ children, className, ...rest }) => {
+const VARIANT_STYLES: Record<NonNullable<CardProps['variant']>, string> = {
+  default: 'section-card',
+  subtle: 'section-card-subtle',
+  inverse: 'section-card-inverse',
+  skeleton: 'skeleton-card',
+};
+
+export const Card: React.FC<CardProps> = ({ children, className, variant = 'default', ...rest }) => {
   return (
     <div
-      className={twMerge("bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden", className)}
+      className={twMerge(VARIANT_STYLES[variant], className)}
       {...rest}
     >
       {children}

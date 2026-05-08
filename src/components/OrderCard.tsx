@@ -2,7 +2,7 @@
  * OrderCard.tsx
  *
  * Displays a single order in the portal home order list.
- * Shows payment summary and access status; the whole card navigates to the order detail page.
+ * Shows top-level order metadata and access status; the whole card navigates to the order detail page.
  *
  * Access status has 6 states derived from the order flags — all text-only,
  * no interactive elements here (those live on the OrderDetail page).
@@ -15,9 +15,6 @@ import { Badge } from './Badge';
 import { Card } from './Card';
 import type { Order } from '../types/order';
 import { formatDate } from '../utils/formatters';
-
-// ─── Currency formatting ─────────────────────────────────────────────────────────
-
 
 // ─── Access status derivation ────────────────────────────────────────────────────
 
@@ -90,10 +87,10 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
 
   const accessIconClass =
     accessStatus.type === 'action'
-      ? 'text-amber-500'
+      ? 'text-status-warning-solid'
       : accessStatus.type === 'success'
-      ? 'text-green-500'
-      : 'text-blue-500';
+      ? 'text-status-success-solid'
+      : 'text-status-info-solid';
 
   return (
     <Link
@@ -101,14 +98,14 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
       className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       aria-label={`View order ${id}: ${programName}`}
     >
-      <Card className="p-5 sm:p-6 flex flex-col gap-4 h-full transition-shadow transition-colors group-hover:shadow-md group-hover:border-slate-300 cursor-pointer">
+      <Card className="flex h-full cursor-pointer flex-col gap-4 p-5 transition-shadow transition-colors group-hover:border-border-strong group-hover:shadow-md sm:p-6">
       {/* ── Header row: program name + payment badge ── */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0">
-          <h3 className="font-medium text-slate-900 text-base leading-snug">
+          <h3 className="text-base font-medium leading-snug text-text-primary">
             {programName}
           </h3>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="mt-0.5 text-sm text-text-muted">
             Order #{id} · {formatDate(createdAt)}
           </p>
         </div>
@@ -122,16 +119,16 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         className={[
           'flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm',
           accessStatus.type === 'action'
-            ? 'bg-amber-50 text-amber-800'
+            ? 'bg-status-warning-bg text-status-warning-text'
             : accessStatus.type === 'success'
-            ? 'bg-green-50 text-green-800'
-            : 'bg-blue-50 text-blue-800',
+            ? 'bg-status-success-bg text-status-success-text'
+            : 'bg-status-info-bg text-status-info-text',
         ].join(' ')}
       >
         <AccessIcon className={`h-4 w-4 flex-shrink-0 mt-0.5 ${accessIconClass}`} />
         <span>{accessStatus.message}</span>
       </div>
-    </Card>
+      </Card>
     </Link>
   );
 };

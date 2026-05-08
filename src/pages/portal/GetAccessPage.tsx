@@ -105,13 +105,13 @@ interface AccessStatusBadgeProps {
 
 const AccessStatusBadge: React.FC<AccessStatusBadgeProps> = ({ type, label }) => {
   const styles = {
-    action: 'bg-amber-100 text-amber-800',
-    info: 'bg-blue-100 text-blue-800',
-    success: 'bg-green-100 text-green-800',
+    action: 'bg-status-warning-bg text-status-warning-text border-status-warning-border',
+    info: 'bg-status-info-bg text-status-info-text border-status-info-border',
+    success: 'bg-status-success-bg text-status-success-text border-status-success-border',
   };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal ${styles[type]}`}>
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-normal ${styles[type]}`}>
       {label}
     </span>
   );
@@ -140,7 +140,7 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
         <div className="min-w-0 flex-1 flex flex-col gap-1.5">
           {/* Title + badge on same row, space-between */}
           <div className="flex items-center justify-between gap-2">
-            <p className="text-base font-medium text-slate-900 leading-none">
+            <p className="text-base font-medium leading-none text-text-primary">
               {order.programName}
             </p>
             <AccessStatusBadge type={status.type} label={status.label} />
@@ -148,7 +148,7 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
 
           {/* Cohort date below */}
           {order.cohortStartDate && (
-            <span className="inline-flex items-center gap-1 text-sm text-slate-500">
+            <span className="inline-flex items-center gap-1 text-sm text-text-muted">
               <CalendarDaysIcon className="h-3.5 w-3.5 flex-shrink-0" />
               Cohort: {formatDate(order.cohortStartDate)}
             </span>
@@ -157,14 +157,14 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
       </div>
 
       {/* Status description */}
-      <p className="text-sm text-slate-500 leading-relaxed">
+      <p className="text-sm leading-relaxed text-text-muted">
         {status.detail}
       </p>
 
       {/* Tool count chip — only shown when no per-product cards are present */}
       {toolCount > 0 && products.length === 0 && (
         <div className="pl-7 mt-3">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-xs text-slate-600 font-medium">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-subtle px-2.5 py-1 text-xs font-medium text-text-secondary">
             <WrenchScrewdriverIcon className="h-3.5 w-3.5" />
             +{toolCount} tool{toolCount > 1 ? 's' : ''} included
           </span>
@@ -177,9 +177,9 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
   // When an order has purchasedProducts, render each as its own ProductAccessCard
   // so the learner sees a product-specific next step instead of a generic CTA.
   const productSection = products.length > 0 ? (
-    <div className="px-5 sm:px-6 pb-5 sm:pb-6">
-      <div className="border-t border-slate-100 pt-4">
-        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">
+      <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+      <div className="border-t border-border-subtle pt-4">
+        <p className="eyebrow-label mb-3">
           Your products
         </p>
         <div className="space-y-3">
@@ -254,12 +254,12 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
 
 const AccessCardSkeleton: React.FC = () => (
-  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden animate-pulse">
+  <div className="skeleton-card">
     <div className="p-5 sm:p-6">
       <div className="flex items-start gap-2.5">
-        <div className="h-5 w-5 bg-slate-200 rounded-full flex-shrink-0 mt-0.5" />
+        <div className="mt-0.5 h-5 w-5 flex-shrink-0 rounded-full skeleton-block" />
         <div className="flex-1 space-y-2">
-          <div className="h-4 bg-slate-200 rounded w-3/5" />
+          <div className="h-4 w-3/5 skeleton-block" />
           <div className="flex gap-2">
             <div className="h-3 bg-slate-100 rounded w-24" />
             <div className="h-3 bg-slate-100 rounded-full w-20" />
@@ -272,7 +272,7 @@ const AccessCardSkeleton: React.FC = () => (
       </div>
     </div>
     <div className="px-5 sm:px-6 pb-5 sm:pb-6">
-      <div className="border-t border-slate-100 pt-4">
+      <div className="border-t border-border-subtle pt-4">
         <div className="h-10 bg-slate-100 rounded-lg w-full" />
       </div>
     </div>
@@ -283,13 +283,13 @@ const AccessCardSkeleton: React.FC = () => (
 
 const EmptyState: React.FC = () => (
   <div className="text-center py-16 px-4">
-    <div className="mx-auto h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-      <KeyIcon className="h-9 w-9 text-slate-400" />
+    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-border-subtle bg-surface-subtle">
+      <KeyIcon className="h-9 w-9 text-text-muted" />
     </div>
-    <h3 className="text-base font-medium text-slate-900 mb-1">
+    <h3 className="mb-1 text-base font-medium text-text-primary">
       No programs to access yet.
     </h3>
-    <p className="text-sm text-slate-500 mb-6">
+    <p className="mb-6 text-sm text-text-muted">
       Once you purchase a program, your access links will appear here.
     </p>
     <Link
@@ -335,18 +335,18 @@ export const GetAccessPage: React.FC = () => {
   });
 
   return (
-    <div className="py-8 px-4">
+    <div className="page-shell py-8 px-4">
       <div className="max-w-2xl mx-auto">
 
         {/* ── Page header ── */}
         <div className="mb-6">
-          <h1 className="text-2xl font-medium text-slate-900">Get Access</h1>
+          <h1 className="text-2xl font-medium text-text-primary">Get Access</h1>
 
         </div>
 
         {/* ── Error state ── */}
         {error && (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-sm text-red-700">
+          <div className="status-banner status-banner-error mb-6 flex items-start gap-3 text-sm">
             <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>
@@ -373,7 +373,7 @@ export const GetAccessPage: React.FC = () => {
         )}
 
         {/* ── Footer ── */}
-        <p className="text-center text-xs text-slate-400 mt-8">
+        <p className="mt-8 text-center text-xs text-text-muted">
           Need help?{' '}
           <a href="mailto:support@growthschool.io" className="underline">
             support@growthschool.io

@@ -25,9 +25,6 @@ import { formatDate } from '../utils/formatters';
 import nsdcLogo from '../assets/nsdc-logo.svg';
 import type { LmsEnrollmentStatus, ToolAccess, PartialInstallmentPlan, Payment } from '../types/order';
 
-/** Brand dark shell for partial-payment hero — exact hex (also `theme.colors.brand.hero` in Tailwind). */
-const PARTIAL_PAYMENT_HERO_FILL = '#041B01';
-
 // ─── Date / currency helpers ─────────────────────────────────────────────────────
 
 function formatCurrency(amount: number, currency: string): string {
@@ -104,12 +101,12 @@ const ScheduleRow: React.FC<ScheduleRowProps> = ({
       {/* Timeline dot + connector */}
       <div className="flex h-full min-h-0 w-full flex-col items-center pt-0.5 flex-shrink-0">
         {status === 'paid' ? (
-          <div className="h-5 w-5 rounded-full border-2 border-green-500 flex items-center justify-center flex-shrink-0">
-            <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+          <div className="h-5 w-5 rounded-full border-2 border-status-success-solid flex items-center justify-center flex-shrink-0">
+            <div className="h-2.5 w-2.5 rounded-full bg-status-success-solid" />
           </div>
         ) : isNext ? (
           /* Due Next: amber-tinted ring to match the row accent */
-          <div className="h-5 w-5 rounded-full border-2 border-amber-400 flex-shrink-0" />
+          <div className="h-5 w-5 rounded-full border-2 border-status-warning-solid flex-shrink-0" />
         ) : (
           /* Future pending: dimmer dot */
           <div className="h-5 w-5 rounded-full border-2 border-white/25 flex-shrink-0" />
@@ -118,7 +115,7 @@ const ScheduleRow: React.FC<ScheduleRowProps> = ({
           <div
             className={[
               'w-0.5 flex-1 min-h-[1.5rem] mt-1',
-              status === 'paid' ? 'bg-green-500' : 'bg-white/20',
+              status === 'paid' ? 'bg-status-success-solid' : 'bg-white/20',
             ].join(' ')}
           />
         )}
@@ -167,7 +164,7 @@ const ScheduleRow: React.FC<ScheduleRowProps> = ({
           <button
             type="button"
             onClick={onPay}
-            className="mt-2.5 inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-status-warning-solid px-3 py-1.5 text-xs font-medium text-slate-900 transition-colors hover:bg-amber-400"
           >
             Pay {payAmount != null ? formatCurrency(payAmount, currency) : 'now'}
             <ArrowRightIcon className="h-3 w-3" />
@@ -190,21 +187,21 @@ interface NsdcInlineBannerProps {
  * sees the required next step without scrolling past payment details.
  */
 const NsdcInlineBanner: React.FC<NsdcInlineBannerProps> = ({ onCtaClick }) => (
-  <div className="rounded-xl bg-amber-500/15 border border-amber-500/25 overflow-hidden">
+  <div className="overflow-hidden rounded-xl border border-status-warning-border/40 bg-status-warning-solid/15">
     <div className="flex items-center gap-3 px-4 py-3">
       <img src={nsdcLogo} alt="NSDC" className="h-7 w-auto flex-shrink-0 brightness-0 invert opacity-90" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-amber-200 leading-snug">
+        <p className="text-sm font-medium text-status-warning-border leading-snug">
           NSDC registration required
         </p>
-        <p className="text-xs text-amber-300/70 mt-0.5 leading-normal">
+        <p className="mt-0.5 text-xs leading-normal text-status-warning-border/80">
           Needed once to activate government-certified LMS access. Takes under 2 minutes.
         </p>
       </div>
       <button
         type="button"
         onClick={onCtaClick}
-        className="flex-shrink-0 inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+        className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-status-warning-solid px-3 py-1.5 text-xs font-semibold text-slate-900 transition-colors hover:bg-amber-400"
       >
         Complete
         <ArrowRightIcon className="h-3 w-3" />
@@ -335,9 +332,8 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
     <div className="space-y-4">
       {/* ── Dark hero: booking confirmed + access status + progress + pay CTAs ── */}
       <div
-        style={{ backgroundColor: PARTIAL_PAYMENT_HERO_FILL }}
         className={[
-          'text-white shadow-lg overflow-hidden',
+          'overflow-hidden bg-surface-inverse text-text-inverse shadow-lg',
           flushTopWithCardShell ? 'rounded-t-xl rounded-b-none' : 'rounded-2xl',
         ].join(' ')}
         aria-label={`Booking confirmed: ${programName}`}
@@ -346,27 +342,27 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
 
           {/* Booking confirmed header — access badge lives here to avoid a redundant section heading */}
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-              <CheckCircleIcon className="h-6 w-6 text-emerald-400" />
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-status-success-solid/20">
+              <CheckCircleIcon className="h-6 w-6 text-status-success-border" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <h2 className="text-lg font-medium text-white">Booking Confirmed!</h2>
+                <h2 className="text-lg font-medium text-text-inverse">Booking Confirmed!</h2>
               </div>
               {(email || phoneDisplay) && (
-                <p className="text-sm text-slate-300 mt-1 truncate">
+                <p className="mt-1 truncate text-sm text-white/75">
                   {email}
                   {email && phoneDisplay && ' · '}
                   {phoneDisplay}
                 </p>
               )}
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="mt-1 text-sm text-white/55">
                 Order ID:{' '}
-                <span className="font-sans text-slate-200">#{orderId}</span>
+                <span className="font-sans text-white/85">#{orderId}</span>
                 {' · '}
                 <a
                   href={`#${orderSummaryAnchorId}`}
-                  className="text-emerald-400 font-medium hover:text-emerald-300 underline underline-offset-2"
+                  className="font-medium text-status-success-border underline underline-offset-2 hover:text-white"
                 >
                   {anchorLinkLabel}
                 </a>
@@ -381,9 +377,9 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
 
           {/* ── Booking tool links (when bundled tools exist) ── */}
           {bookingToolAccesses.length > 0 && (
-            <div className="rounded-xl bg-white/5 border border-white/10">
+            <div className="rounded-xl border border-white/10 bg-white/5">
               <div className="p-3 space-y-2">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Included with booking</p>
+                <p className="eyebrow-label text-white/55">Included with booking</p>
                 <div className="flex flex-wrap gap-2">
                   {bookingToolAccesses.map((tool) => {
                     const url = tool.activationUrl ?? tool.loginUrl;
@@ -393,7 +389,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/85 transition-colors hover:bg-white/20"
                       >
                         {tool.displayName}
                         <ArrowTopRightOnSquareIcon className="h-3 w-3 opacity-70" />
@@ -401,7 +397,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                     ) : (
                       <span
                         key={tool.id}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 border border-white/20 px-3 py-1.5 text-xs font-medium text-slate-200"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/85"
                       >
                         {tool.displayName}
                       </span>
@@ -424,12 +420,12 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
             >
               {/* Title row + toggle label */}
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Payment Progress</p>
-                <span className="flex items-center gap-1 text-xs text-slate-400">
+                <p className="eyebrow-label text-white/55">Payment Progress</p>
+                <span className="flex items-center gap-1 text-xs text-white/55">
                   {scheduleOpen ? 'Hide schedule' : 'View schedule'}
                   <ChevronDownIcon
                     className={[
-                      'h-4 w-4 text-slate-400 transition-transform duration-200',
+                      'h-4 w-4 text-white/55 transition-transform duration-200',
                       scheduleOpen ? 'rotate-180' : '',
                     ].join(' ')}
                   />
@@ -438,24 +434,24 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
 
               {/* Paid / total amounts */}
               <div className="flex items-baseline gap-1.5">
-                <span className="text-lg font-medium text-white">{formatCurrency(paidAmount, currency)}</span>
-                <span className="text-slate-500 text-sm">/ {formatCurrency(totalAmount, currency)}</span>
+                <span className="text-lg font-medium text-text-inverse">{formatCurrency(paidAmount, currency)}</span>
+                <span className="text-sm text-white/45">/ {formatCurrency(totalAmount, currency)}</span>
               </div>
 
               {/* Progress bar */}
               <div className="h-2.5 bg-white/15 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                  className="h-full rounded-full bg-status-success-solid transition-all duration-500"
                   style={{ width: `${progressFraction * 100}%` }}
                 />
               </div>
 
               {/* Step count + percentage */}
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-white/55">
                   {paidScheduleSteps}/{totalSteps} payments
                 </p>
-                <p className="text-xs font-medium text-emerald-400">
+                <p className="text-xs font-medium text-status-success-border">
                   {Math.round(progressFraction * 100)}%
                 </p>
               </div>
@@ -512,9 +508,9 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
 
                 {/* Footer: final due date reminder */}
                 {lastDue && pendingAmount > 0 && (
-                  <p className="text-sm text-slate-400 py-3 border-t border-white/10 leading-normal">
+                  <p className="border-t border-white/10 py-3 text-sm leading-normal text-white/55">
                     Complete all payments by{' '}
-                    <span className="font-medium text-slate-200">
+                    <span className="font-medium text-white/85">
                       {formatDate(lastDue.dueDate)}
                     </span>{' '}
                     to unlock full access.
@@ -530,9 +526,9 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
               {/* Pay in full row */}
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm text-slate-400">Pay in full</p>
+                  <p className="text-sm text-white/60">Pay in full</p>
                   {isDiscountActive && discountedRemainingAmount != null && discountedRemainingAmount < fullRemaining && (
-                    <p className="text-xs text-emerald-400/90 mt-0.5">
+                    <p className="mt-0.5 text-xs text-status-success-border">
                       Save {formatCurrency(fullRemaining - discountedRemainingAmount, currency)}!
                     </p>
                   )}
@@ -540,7 +536,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                 <button
                   type="button"
                   onClick={onPayFullRemaining}
-                  className="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                  className="flex-shrink-0 rounded-lg bg-status-success-solid px-4 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-emerald-400"
                 >
                   Pay {formatCurrency(effectiveRemaining, currency)}
                 </button>
@@ -550,26 +546,26 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
                 <>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-xs text-slate-500">or</span>
+                    <span className="text-xs text-white/45">or</span>
                     <div className="flex-1 h-px bg-white/10" />
                   </div>
                   {/* Pay next installment row */}
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs text-slate-400">Scheduled payment {nextIdx + 1}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Due {formatDate(nextInstallment.dueDate)}</p>
+                      <p className="text-xs text-white/60">Scheduled payment {nextIdx + 1}</p>
+                      <p className="mt-0.5 text-xs text-white/45">Due {formatDate(nextInstallment.dueDate)}</p>
                     </div>
                     <button
                       type="button"
                       onClick={onPayNextInstallment}
-                      className="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                      className="flex-shrink-0 rounded-lg bg-status-success-solid px-4 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-emerald-400"
                     >
                       Pay {formatCurrency(nextInstallment.amount, currency)}
                     </button>
                   </div>
                 </>
               ) : (
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-white/55">
                   All part payments are recorded. Pay any remaining balance above.
                 </p>
               )}

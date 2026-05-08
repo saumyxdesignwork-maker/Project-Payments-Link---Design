@@ -10,20 +10,25 @@ interface BadgeProps {
 }
 
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  default: 'bg-slate-100 text-slate-800',
-  success: 'bg-green-100 text-green-800',
-  warning: 'bg-amber-100 text-amber-800',
-  error:   'bg-red-100 text-red-800',
-  info:    'bg-blue-100 text-blue-800',
+  default: 'bg-surface-subtle text-text-secondary',
+  success: 'bg-status-success-bg text-status-success-text',
+  warning: 'bg-status-warning-bg text-status-warning-text',
+  error:   'bg-status-error-bg text-status-error-text',
+  info:    'bg-status-info-bg text-status-info-text',
 };
 
 export const Badge: React.FC<BadgeProps> = ({ children, className, variant = 'default' }) => {
   return (
     <span className={twMerge(
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs",
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs border border-transparent",
       variant === 'default' || variant === 'warning' || variant === 'success'
         ? 'font-normal'
         : 'font-medium',
+      variant === 'success' && 'border-status-success-border',
+      variant === 'warning' && 'border-status-warning-border',
+      variant === 'error' && 'border-status-error-border',
+      variant === 'info' && 'border-status-info-border',
+      variant === 'default' && 'border-border-subtle',
       VARIANT_STYLES[variant],
       className
     )}>
@@ -31,4 +36,3 @@ export const Badge: React.FC<BadgeProps> = ({ children, className, variant = 'de
     </span>
   );
 };
-

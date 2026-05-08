@@ -531,7 +531,7 @@ export const ReviewPage: React.FC = () => {
               {/* Bumps + Audio — "Don't miss out on these deals" */}
               {(bumpProducts.length > 0 || audioProducts.length > 0) && (
                 <section>
-                  <h3 className="text-base font-medium text-slate-900 mb-4">Optional Extras</h3>
+                  <h3 className="text-base font-medium text-slate-900 mb-4">Add-ons</h3>
                   <div className="space-y-4">
                     {bumpProducts.map((bp) => (
                       <AddonCard
@@ -558,6 +558,15 @@ export const ReviewPage: React.FC = () => {
               )}
 
 
+
+              {/* ── GST Invoice ── */}
+              <Card className="px-6 py-4 bg-white border-slate-200">
+                <GstControl
+                  gstEnabled={gstEnabled} onToggle={setGstEnabled}
+                  companyName={gstDetails.companyName} gstin={gstDetails.gstin} billingAddress={gstDetails.billingAddress}
+                  onChange={(f, v) => setGstDetails({ [f]: v })}
+                />
+              </Card>
 
               {/* What's included */}
               <div>
@@ -587,70 +596,70 @@ export const ReviewPage: React.FC = () => {
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-6 space-y-4">
 
-            {/* ── Order Summary card ── */}
-            <Card className="px-6 pt-6 pb-3 bg-white border-slate-200">
-              <h3 className="text-base font-medium mb-1 text-slate-900">Order Summary</h3>
-              {couponApplied && (
-                <p className="text-xs text-emerald-700 font-normal mb-3">
-                  {DUMMY_COUPON_CODE} applied · 20% off eligible lines
-                </p>
-              )}
+            {/* ── Order Summary card + secure badge ── */}
+            <div className="flex flex-col gap-2">
+              <Card className="px-6 pt-6 pb-3 bg-white border-slate-200">
+                <h3 className="text-base font-medium mb-1 text-slate-900">Order Summary</h3>
+                {couponApplied && (
+                  <p className="text-xs text-emerald-700 font-normal mb-3">
+                    {DUMMY_COUPON_CODE} applied · 20% off eligible lines
+                  </p>
+                )}
 
-              {/* Primary product */}
-              <div className="pb-3 mb-3">
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-slate-700 font-normal text-sm">{PROGRAM_DATA.title}</span>
-                  <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
-                    {formatPrice(applyDisc(basePrice))}
-                  </span>
-                </div>
-              </div>
-
-              {/* Add-ons */}
-              {[...selectedBumps, ...selectedAudios].map((p) => (
-                <div key={p.id} className="pb-3 border-b-0 border-slate-100 mb-3">
+                {/* Primary product */}
+                <div className="pb-3 mb-3">
                   <div className="flex justify-between items-start gap-2">
-                    <span className="text-slate-700 text-sm">{p.name}</span>
+                    <span className="text-slate-700 font-normal text-sm">{PROGRAM_DATA.title}</span>
                     <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
-                      {formatPrice(applyDisc(p.price))}
+                      {formatPrice(applyDisc(basePrice))}
                     </span>
                   </div>
                 </div>
-              ))}
 
-              {paymentMode === 'partial' && (
-                <div className="border-t border-slate-100 pt-3 mb-3 space-y-2">
-                  <div className="flex justify-between items-center gap-3 text-sm">
-                    <span className="text-slate-500">Total</span>
-                    <span className="text-slate-900 font-medium shrink-0 tabular-nums">
-                      {formatPrice(displayFeeDiscounted)}
-                    </span>
+                {/* Add-ons */}
+                {[...selectedBumps, ...selectedAudios].map((p) => (
+                  <div key={p.id} className="pb-3 border-b-0 border-slate-100 mb-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-slate-700 text-sm">{p.name}</span>
+                      <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
+                        {formatPrice(applyDisc(p.price))}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center gap-3 text-sm pt-1 border-t border-slate-100">
-                    <span className="text-slate-500">Remaining · scheduled</span>
-                    <span className="text-slate-500 shrink-0 tabular-nums">
-                      {formatPrice(courseRemainderDiscounted)}
+                ))}
+
+                {paymentMode === 'partial' && (
+                  <div className="border-t border-slate-100 pt-3 mb-3 space-y-2">
+                    <div className="flex justify-between items-center gap-3 text-sm">
+                      <span className="text-slate-500">Total</span>
+                      <span className="text-slate-900 font-medium shrink-0 tabular-nums">
+                        {formatPrice(displayFeeDiscounted)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center gap-3 text-sm pt-1 border-t border-slate-100">
+                      <span className="text-slate-500">Remaining · scheduled</span>
+                      <span className="text-slate-500 shrink-0 tabular-nums">
+                        {formatPrice(courseRemainderDiscounted)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-start gap-2 text-sm py-2 border-t border-slate-100 mt-1">
+                  <span className="text-slate-500">Applicable Taxes</span>
+                  <span className="text-slate-500 text-right">₹0</span>
+                </div>
+
+                <div className="border-t border-slate-200 pt-4 mb-6">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-slate-500 text-sm">
+                      {paymentMode === 'partial' ? 'Paying today' : 'Total'}
                     </span>
+                    <span className="text-sm font-medium text-slate-900">{formatPrice(amountPayableToday)}</span>
                   </div>
                 </div>
-              )}
 
-              <div className="flex justify-between items-start gap-2 text-sm py-2 border-t border-slate-100 mt-1">
-                <span className="text-slate-500">Applicable Taxes</span>
-                <span className="text-slate-500 text-right">₹0</span>
-              </div>
-
-              <div className="border-t border-slate-200 pt-4 mb-6">
-                <div className="flex justify-between items-baseline">
-                  <span className="text-slate-500 text-sm">
-                    {paymentMode === 'partial' ? 'Paying today' : 'Total'}
-                  </span>
-                  <span className="text-sm font-medium text-slate-900">{formatPrice(amountPayableToday)}</span>
-                </div>
-              </div>
-
-              {!isDuplicateFound && (
-                <div>
+                {!isDuplicateFound && (
                   <Button
                     onClick={handlePay}
                     disabled={isPaying || isChecking}
@@ -658,13 +667,16 @@ export const ReviewPage: React.FC = () => {
                   >
                     {isPaying ? 'Processing…' : `Pay ${formatPrice(amountPayableToday)}`}
                   </Button>
-                  <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500">
-                    <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                    <span>Secure Payment · 256-bit SSL Encrypted</span>
-                  </div>
+                )}
+              </Card>
+
+              {!isDuplicateFound && (
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
+                  <CheckCircleIcon className="h-4 w-4 text-green-500" />
+                  <span>Secure Payment · 256-bit SSL Encrypted</span>
                 </div>
               )}
-            </Card>
+            </div>
 
             {/* ── Coupon & Taxes card ── */}
             <Card className="p-6 bg-white border-slate-200">
@@ -738,14 +750,6 @@ export const ReviewPage: React.FC = () => {
 
             </Card>
 
-            {/* ── GST Invoice card ── */}
-            <Card className="px-6 py-4 bg-white border-slate-200">
-              <GstControl
-                gstEnabled={gstEnabled} onToggle={setGstEnabled}
-                companyName={gstDetails.companyName} gstin={gstDetails.gstin} billingAddress={gstDetails.billingAddress}
-                onChange={(f, v) => setGstDetails({ [f]: v })}
-              />
-            </Card>
           </div>
         </div>
       </div>

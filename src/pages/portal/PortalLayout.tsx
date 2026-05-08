@@ -21,7 +21,7 @@ import { Outlet } from 'react-router-dom';
 
 export const PortalLayout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="page-shell">
       <Outlet />
     </div>
   );

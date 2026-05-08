@@ -43,151 +43,141 @@ export const SuccessPage: React.FC = () => {
   const courseRemainder = disc(courseInstallmentsRemainder());
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-      <Card className="max-w-md w-full p-8">
+    <div className="page-shell flex items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-4">
 
-        {/* ── Confirmation hero ───────────────────────────────────── */}
-        <div className="text-center mb-6">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-            <CheckCircleIcon className="h-10 w-10 text-green-600" />
-          </div>
-          <h1 className="text-2xl font-medium text-slate-900 mb-1">
-            {paymentMode === 'partial' ? 'Booking confirmed' : 'Payment Confirmed!'}
-          </h1>
-          <p className="text-slate-600 text-sm">
-            Thank you, <span className="font-normal">{userDetails.fullName || 'there'}</span>.
-            {paymentMode === 'partial'
-              ? ' Your seat is booked.'
-              : ' You\'re all set.'}
-          </p>
-        </div>
+        {/* ── Dark confirmation + order summary card ───────────────── */}
+        <div className="overflow-hidden bg-surface-inverse text-text-inverse shadow-lg rounded-2xl">
+          <div className="p-5 sm:p-6 space-y-4">
 
-        {/* ── Order summary (pricing breakdown) ───────────────────── */}
-        <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 mb-4 divide-y divide-slate-200/90">
-          <div className="space-y-2.5 pb-3">
-            <div className="flex justify-between gap-3 text-sm">
-              <span className="text-slate-500 shrink-0">Order ID</span>
-              <span className="font-normal text-slate-900 text-right tabular-nums">{orderId}</span>
-            </div>
-            <div className="flex justify-between gap-3 text-sm">
-              <span className="text-slate-500 shrink-0">Program</span>
-              <span className="font-normal text-slate-900 text-right">{PROGRAM_DATA.title}</span>
-            </div>
-            {selectedCohort && (
-              <div className="flex justify-between gap-3 text-sm">
-                <span className="text-slate-500 shrink-0">Cohort</span>
-                <span className="font-normal text-slate-900 text-right">{formatCohortDate(selectedCohort.startDate)}</span>
+            {/* Hero: icon + title + email + order ID */}
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-status-success-solid/20">
+                <CheckCircleIcon className="h-6 w-6 text-status-success-border" />
               </div>
-            )}
-          </div>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-medium text-text-inverse">
+                  {paymentMode === 'partial' ? 'Booking Confirmed!' : 'Payment Confirmed!'}
+                </h1>
+                <p className="mt-0.5 text-sm text-white/75">
+                  Thank you, {userDetails.fullName || 'there'}.
+                  {paymentMode === 'partial' ? ' Your seat is booked.' : ' You\'re all set.'}
+                </p>
+                <p className="mt-0.5 text-sm text-white/55">
+                  Order ID: <span className="text-white/85">{orderId}</span>
+                  {userDetails.email && (
+                    <> · <span className="text-white/75">{userDetails.email}</span></>
+                  )}
+                </p>
+              </div>
+            </div>
 
-          <div className="pt-3 space-y-2">
-            {paymentMode === 'partial' ? (
-              <>
-                {mult < 1 ? (
+            {/* Order summary */}
+            <div className="rounded-xl border border-white/10 bg-white/5">
+              <div className="p-4 space-y-2.5">
+
+                {/* Meta rows */}
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="shrink-0 text-white/55">Program</span>
+                  <span className="text-right text-white/85">{PROGRAM_DATA.title}</span>
+                </div>
+                {selectedCohort && (
                   <div className="flex justify-between gap-3 text-sm">
-                    <span className="text-slate-600">Booking + add-ons (first payment)</span>
-                    <span className="font-normal text-slate-900 tabular-nums">
-                      {formatCheckoutPrice(amountPaid, isIndianCustomer)}
-                    </span>
+                    <span className="shrink-0 text-white/55">Cohort</span>
+                    <span className="text-right text-white/85">{formatCohortDate(selectedCohort.startDate)}</span>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex justify-between gap-3 text-sm">
-                      <span className="text-slate-600">Course booking</span>
-                      <span className="font-normal text-slate-900 tabular-nums">
-                        {formatCheckoutPrice(PROGRAM_DATA.bookingAmount, isIndianCustomer)}
-                      </span>
-                    </div>
-                    {selectedAddonLines.map((line) => (
-                      <div key={line.id} className="flex justify-between gap-3 text-sm">
-                        <span className="text-slate-600 text-left min-w-0 pr-2">
-                          {localizeInrAmountsInCopy(line.name, isIndianCustomer)}
-                        </span>
-                        <span className="font-normal text-slate-900 tabular-nums shrink-0">
-                          {formatCheckoutPrice(line.price, isIndianCustomer)}
-                        </span>
-                      </div>
-                    ))}
-                    {checkoutAddonsTotal > 0 && selectedAddonLines.length === 0 && (
-                      <div className="flex justify-between gap-3 text-sm">
-                        <span className="text-slate-600">Add-ons</span>
-                        <span className="font-normal text-slate-900 tabular-nums">
-                          {formatCheckoutPrice(checkoutAddonsTotal, isIndianCustomer)}
-                        </span>
-                      </div>
-                    )}
-                  </>
                 )}
-                <div className="flex justify-between gap-3 text-sm font-medium text-slate-900 border-t border-slate-200/90 pt-2 mt-1">
-                  <span>Total paid now</span>
-                  <span className="tabular-nums">{formatCheckoutPrice(amountPaid, isIndianCustomer)}</span>
-                </div>
-                <div className="flex justify-between gap-3 text-sm pt-1">
-                  <span className="text-slate-600">Remaining · on schedule</span>
-                  <span className="font-medium text-amber-800 tabular-nums">
-                    {formatCheckoutPrice(courseRemainder, isIndianCustomer)}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <>
-                {mult < 1 && (selectedAddonLines.length > 0 || checkoutAddonsTotal > 0) ? (
-                  <div className="flex justify-between gap-3 text-sm">
-                    <span className="text-slate-600">Program + add-ons</span>
-                    <span className="font-normal text-slate-900 tabular-nums">
-                      {formatCheckoutPrice(amountPaid, isIndianCustomer)}
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex justify-between gap-3 text-sm">
-                      <span className="text-slate-600">Program fee</span>
-                      <span className="font-normal text-slate-900 tabular-nums">
-                        {formatCheckoutPrice(disc(PROGRAM_DATA.totalFee), isIndianCustomer)}
-                      </span>
-                    </div>
-                    {selectedAddonLines.map((line) => (
-                      <div key={line.id} className="flex justify-between gap-3 text-sm">
-                        <span className="text-slate-600 text-left min-w-0 pr-2">
-                          {localizeInrAmountsInCopy(line.name, isIndianCustomer)}
-                        </span>
-                        <span className="font-normal text-slate-900 tabular-nums shrink-0">
-                          {formatCheckoutPrice(disc(line.price), isIndianCustomer)}
-                        </span>
+
+                {/* Pricing rows */}
+                <div className="border-t border-white/10 pt-2.5 space-y-2">
+                  {paymentMode === 'partial' ? (
+                    <>
+                      {mult < 1 ? (
+                        <div className="flex justify-between gap-3 text-sm">
+                          <span className="text-white/55">Booking + add-ons (first payment)</span>
+                          <span className="text-white/85 tabular-nums">{formatCheckoutPrice(amountPaid, isIndianCustomer)}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between gap-3 text-sm">
+                            <span className="text-white/55">Course booking</span>
+                            <span className="text-white/85 tabular-nums">{formatCheckoutPrice(PROGRAM_DATA.bookingAmount, isIndianCustomer)}</span>
+                          </div>
+                          {selectedAddonLines.map((line) => (
+                            <div key={line.id} className="flex justify-between gap-3 text-sm">
+                              <span className="text-white/55 text-left min-w-0 pr-2">{localizeInrAmountsInCopy(line.name, isIndianCustomer)}</span>
+                              <span className="text-white/85 tabular-nums shrink-0">{formatCheckoutPrice(line.price, isIndianCustomer)}</span>
+                            </div>
+                          ))}
+                          {checkoutAddonsTotal > 0 && selectedAddonLines.length === 0 && (
+                            <div className="flex justify-between gap-3 text-sm">
+                              <span className="text-white/55">Add-ons</span>
+                              <span className="text-white/85 tabular-nums">{formatCheckoutPrice(checkoutAddonsTotal, isIndianCustomer)}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      <div className="flex justify-between gap-3 border-t border-white/10 pt-2 text-sm font-normal text-white">
+                        <span>Total paid now</span>
+                        <span className="tabular-nums">{formatCheckoutPrice(amountPaid, isIndianCustomer)}</span>
                       </div>
-                    ))}
-                    {checkoutAddonsTotal > 0 && selectedAddonLines.length === 0 && (
                       <div className="flex justify-between gap-3 text-sm">
-                        <span className="text-slate-600">Add-ons</span>
-                        <span className="font-normal text-slate-900 tabular-nums">
-                          {formatCheckoutPrice(disc(checkoutAddonsTotal), isIndianCustomer)}
-                        </span>
+                        <span className="text-white/55">Remaining · on schedule</span>
+                        <span className="font-normal text-status-warning-border tabular-nums">{formatCheckoutPrice(courseRemainder, isIndianCustomer)}</span>
                       </div>
-                    )}
-                  </>
-                )}
-                <div className="flex justify-between gap-3 text-sm font-medium text-slate-900 border-t border-slate-200/90 pt-2 mt-1">
-                  <span>Total paid</span>
-                  <span className="tabular-nums">{formatCheckoutPrice(amountPaid, isIndianCustomer)}</span>
+                    </>
+                  ) : (
+                    <>
+                      {mult < 1 && (selectedAddonLines.length > 0 || checkoutAddonsTotal > 0) ? (
+                        <div className="flex justify-between gap-3 text-sm">
+                          <span className="text-white/55">Program + add-ons</span>
+                          <span className="text-white/85 tabular-nums">{formatCheckoutPrice(amountPaid, isIndianCustomer)}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex justify-between gap-3 text-sm">
+                            <span className="text-white/55">Program fee</span>
+                            <span className="text-white/85 tabular-nums">{formatCheckoutPrice(disc(PROGRAM_DATA.totalFee), isIndianCustomer)}</span>
+                          </div>
+                          {selectedAddonLines.map((line) => (
+                            <div key={line.id} className="flex justify-between gap-3 text-sm">
+                              <span className="text-white/55 text-left min-w-0 pr-2">{localizeInrAmountsInCopy(line.name, isIndianCustomer)}</span>
+                              <span className="text-white/85 tabular-nums shrink-0">{formatCheckoutPrice(disc(line.price), isIndianCustomer)}</span>
+                            </div>
+                          ))}
+                          {checkoutAddonsTotal > 0 && selectedAddonLines.length === 0 && (
+                            <div className="flex justify-between gap-3 text-sm">
+                              <span className="text-white/55">Add-ons</span>
+                              <span className="text-white/85 tabular-nums">{formatCheckoutPrice(disc(checkoutAddonsTotal), isIndianCustomer)}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      <div className="flex justify-between gap-3 border-t border-white/10 pt-2 text-sm font-normal text-white">
+                        <span>Total paid</span>
+                        <span className="tabular-nums">{formatCheckoutPrice(amountPaid, isIndianCustomer)}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </>
-            )}
+
+              </div>
+            </div>
+
           </div>
         </div>
 
-
-        {/* ── What happens next — product access cards ─────────────── */}
-        <div className="mt-2 pt-4 border-t border-slate-200">
-          <h2 className="text-sm font-normal text-slate-500 mb-3">What happens next?</h2>
+        {/* ── What happens next + email note ───────────────────────── */}
+        <Card className="p-5 sm:p-6">
+          <h2 className="mb-3 text-sm font-normal text-text-muted">What happens next?</h2>
           <div className="space-y-3">
 
-            {/* Main program card */}
             {PROGRAM_DATA.isNsdcAligned && isIndianCustomer ? (
               <ProductAccessCard
                 productName={PROGRAM_DATA.title}
                 productTag="Main Program"
                 accessType="nsdc_onboarding"
+                stepLayout="stacked"
                 nsdcSteps={{
                   whatsappUrl: PROGRAM_DATA.whatsapp_group_url ?? '#',
                   nsdcEnrollPath: '/portal/enroll',
@@ -202,7 +192,6 @@ export const SuccessPage: React.FC = () => {
               />
             )}
 
-            {/* Bump product add-on cards */}
             {(PROGRAM_DATA.bump_products ?? [])
               .filter((b) => selectedBumpIds.includes(b.id))
               .map((b) => (
@@ -215,7 +204,6 @@ export const SuccessPage: React.FC = () => {
                 />
               ))}
 
-            {/* Audio product add-on cards */}
             {(PROGRAM_DATA.audio_products ?? [])
               .filter((a) => selectedAudioIds.includes(a.id))
               .map((a) => (
@@ -229,15 +217,14 @@ export const SuccessPage: React.FC = () => {
               ))}
 
           </div>
-        </div>
 
-        {/* ── Confirmation email note ──────────────────────────────── */}
-        <p className="text-xs text-slate-500 text-center mt-4">
-          A confirmation has been sent to{' '}
-          <span className="font-normal text-slate-700">{userDetails.email || 'your email'}</span>.
-        </p>
+          <p className="mt-4 text-center text-xs text-text-muted">
+            A confirmation has been sent to{' '}
+            <span className="font-normal text-text-secondary">{userDetails.email || 'your email'}</span>.
+          </p>
+        </Card>
 
-      </Card>
+      </div>
     </div>
   );
 };

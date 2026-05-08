@@ -27,19 +27,19 @@ import type { Order } from '../types/order';
 // ─── Loading skeleton ────────────────────────────────────────────────────────────
 
 const OrderCardSkeleton: React.FC = () => (
-  <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 animate-pulse space-y-4">
+  <div className="skeleton-card p-5 sm:p-6 space-y-4">
     <div className="flex justify-between items-start">
       <div className="space-y-2">
-        <div className="h-4 bg-slate-200 rounded w-48" />
-        <div className="h-3 bg-slate-100 rounded w-32" />
+        <div className="h-4 w-48 skeleton-block" />
+        <div className="h-3 w-32 rounded bg-slate-100" />
       </div>
-      <div className="h-5 bg-slate-200 rounded-full w-24" />
+      <div className="h-5 w-24 rounded-full skeleton-block" />
     </div>
-    <div className="bg-slate-100 rounded-lg p-4 space-y-2">
-      <div className="h-3 bg-slate-200 rounded w-full" />
-      <div className="h-3 bg-slate-200 rounded w-3/4" />
+    <div className="rounded-lg bg-surface-subtle p-4 space-y-2">
+      <div className="h-3 w-full skeleton-block" />
+      <div className="h-3 w-3/4 skeleton-block" />
     </div>
-    <div className="rounded-lg bg-slate-100 p-3 space-y-2">
+    <div className="rounded-lg bg-surface-subtle p-3 space-y-2">
       <div className="h-3 bg-slate-200/80 rounded w-full" />
       <div className="h-3 bg-slate-200/80 rounded w-11/12" />
     </div>
@@ -50,13 +50,13 @@ const OrderCardSkeleton: React.FC = () => (
 
 const EmptyState: React.FC = () => (
   <div className="text-center py-16 px-4">
-    <div className="mx-auto h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-      <ShoppingBagIcon className="h-9 w-9 text-slate-400" />
+    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-border-subtle bg-surface-subtle">
+      <ShoppingBagIcon className="h-9 w-9 text-text-muted" />
     </div>
-    <h3 className="text-base font-medium text-slate-900 mb-1">
+    <h3 className="mb-1 text-base font-medium text-text-primary">
       You don't have any orders yet.
     </h3>
-    <p className="text-sm text-slate-500 mb-6">
+    <p className="mb-6 text-sm text-text-muted">
       Once you enrol in a program, your order history will appear here.
     </p>
     <Link
@@ -90,20 +90,20 @@ export const PortalHomePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="page-shell py-8 px-4">
       <div className="max-w-2xl mx-auto">
 
         {/* ── Page header ── */}
         <div className="mb-6">
-          <h1 className="text-2xl font-medium text-slate-900">My Orders</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-2xl font-medium text-text-primary">My Orders</h1>
+          <p className="mt-1 text-sm text-text-muted">
             View your enrolled programs, payment status, and access links.
           </p>
         </div>
 
         {/* ── Error state ── */}
         {error && (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-sm text-red-700">
+          <div className="status-banner status-banner-error mb-6 flex items-start gap-3 text-sm">
             <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>
@@ -131,7 +131,7 @@ export const PortalHomePage: React.FC = () => {
         )}
 
         {/* ── Footer ── */}
-        <p className="text-center text-xs text-slate-400 mt-8">
+        <p className="mt-8 text-center text-xs text-text-muted">
           Questions?{' '}
           <a href="mailto:support@growthschool.io" className="underline">
             support@growthschool.io

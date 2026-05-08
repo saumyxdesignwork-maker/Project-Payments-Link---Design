@@ -17,7 +17,10 @@ import {
   EnvelopeIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/solid';
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import whatsappIcon from '../assets/whatsapp.svg';
+import { Card } from './Card';
+import { Button } from './Button';
+import { Badge } from './Badge';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -46,6 +49,8 @@ export interface ProductAccessCardProps {
     url: string;
     description?: string;
   };
+  /** Layout for NSDC step rows. Use stacked in narrow card contexts such as the success page. */
+  stepLayout?: 'inline' | 'stacked';
 }
 
 // ─── Sub-renderers ─────────────────────────────────────────────────────────────
@@ -53,9 +58,9 @@ export interface ProductAccessCardProps {
 /** Step marker circle — filled green when done, outlined when pending. */
 const StepCircle: React.FC<{ index: number; done: boolean }> = ({ index, done }) =>
   done ? (
-    <CheckCircleIcon className="h-5 w-5 text-green-500 flex-shrink-0" />
+    <CheckCircleIcon className="h-5 w-5 text-status-success-solid flex-shrink-0" />
   ) : (
-    <span className="h-5 w-5 flex-shrink-0 rounded-full border border-slate-300 flex items-center justify-center text-xs font-medium text-slate-500">
+    <span className="h-5 w-5 flex-shrink-0 rounded-full border border-border flex items-center justify-center text-xs font-medium text-text-muted">
       {index}
     </span>
   );
@@ -69,8 +74,10 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
   ctaUrl,
   nsdcSteps,
   customCta,
+  stepLayout = 'inline',
 }) => {
   const navigate = useNavigate();
+  const isStackedLayout = stepLayout === 'stacked';
 
   // Local step-completion state for the NSDC onboarding checklist.
   // This is UI-only feedback; persistence is handled by the portal layer later.
@@ -79,12 +86,12 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
   // ── direct_link ─────────────────────────────────────────────────────────────
   const renderDirectLink = () => (
     <div className="flex items-center justify-between gap-4 flex-wrap">
-      <p className="text-sm text-slate-600">Your access is ready. Click below to get started.</p>
+      <p className="text-sm text-text-secondary">Your access is ready. Click below to get started.</p>
       <a
         href={ctaUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
       >
         Get access here
         <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
@@ -95,12 +102,12 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
   // ── email_24h ───────────────────────────────────────────────────────────────
   const renderEmail24h = () => (
     <div className="flex items-start gap-3">
-      <div className="h-8 w-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <EnvelopeIcon className="h-4 w-4 text-blue-500" />
+      <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-status-info-border bg-status-info-bg">
+        <EnvelopeIcon className="h-4 w-4 text-status-info-solid" />
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-800">Access coming to your inbox</p>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <p className="text-sm font-medium text-text-secondary">Access coming to your inbox</p>
+        <p className="mt-0.5 text-sm text-text-muted">
           You'll receive access details by email within 24 hours. Check your spam folder if you
           don't see it.
         </p>
@@ -115,7 +122,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
 
     return (
       <div className="space-y-4">
-        <p className="text-sm text-slate-500 leading-[145%]">
+        <p className="text-sm leading-[145%] text-text-muted">
           Complete both steps below to activate your program access and government-certified
           certification.
         </p>
@@ -123,14 +130,11 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
         {/* Steps auto-layout — 16px gap */}
         <div className="flex flex-col gap-4">
           {/* Step 1 — WhatsApp */}
-          <div className="flex items-start gap-3">
+          <div className={`flex gap-3 ${isStackedLayout ? 'items-start' : 'items-center'}`}>
             <StepCircle index={1} done={whatsappJoined} />
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium leading-snug ${whatsappJoined ? 'text-green-700 line-through decoration-green-400' : 'text-slate-800'}`}>
+            <div className={`flex-1 min-w-0 flex gap-2 ${isStackedLayout ? 'flex-col items-start' : 'items-center justify-between'}`}>
+              <p className={`text-sm font-medium leading-snug ${whatsappJoined ? 'text-status-success-text line-through decoration-status-success-solid' : 'text-text-primary'}`}>
                 Join the WhatsApp community
-              </p>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Get program updates, peer support, and cohort announcements.
               </p>
               {!whatsappJoined && (
                 <a
@@ -138,9 +142,9 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setWhatsappJoined(true)}
-                  className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-white text-sm font-normal hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-whatsapp px-3 py-1.5 text-sm font-normal text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover focus:outline-none focus:ring-2 focus:ring-whatsapp focus:ring-offset-1"
                 >
-                  <ChatBubbleLeftRightIcon className="h-3.5 w-3.5" />
+                  <img src={whatsappIcon} alt="" className="h-4 w-4" aria-hidden="true" />
                   Join WhatsApp group
                 </a>
               )}
@@ -148,24 +152,20 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
           </div>
 
           {/* Step 2 — NSDC registration */}
-          <div className="flex items-start gap-3">
+          <div className={`flex gap-3 ${isStackedLayout ? 'items-start' : 'items-center'}`}>
             <StepCircle index={2} done={false} />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800 leading-snug">
+            <div className={`flex-1 min-w-0 flex gap-2 ${isStackedLayout ? 'flex-col items-start' : 'items-center justify-between'}`}>
+              <p className="text-sm font-medium text-text-secondary leading-snug">
                 Complete NSDC registration
               </p>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Required once to activate your government-certified LMS access. Takes under 2
-                minutes.
-              </p>
-              <button
+              <Button
                 type="button"
                 onClick={() => navigate(nsdcEnrollPath)}
-                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-white text-sm font-normal hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                className="px-3 py-1.5 text-sm font-normal gap-1.5"
               >
                 Complete registration
                 <ArrowTopRightOnSquareIcon className="h-3 w-3" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -181,13 +181,13 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
     return (
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {description && (
-          <p className="text-sm text-slate-600 flex-1 min-w-0">{description}</p>
+          <p className="text-sm text-text-secondary flex-1 min-w-0">{description}</p>
         )}
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
         >
           {label}
           <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
@@ -198,25 +198,23 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
 
   // ── Card shell ──────────────────────────────────────────────────────────────
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+    <Card className="p-4 space-y-3">
       {/* Header — product name + optional tag badge */}
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium text-slate-900 leading-snug">{productName}</p>
+        <p className="text-sm font-medium text-text-primary leading-snug">{productName}</p>
         {productTag && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-normal bg-slate-100 text-slate-600 flex-shrink-0">
-            {productTag}
-          </span>
+          <Badge className="flex-shrink-0">{productTag}</Badge>
         )}
       </div>
 
       {/* Divider */}
-      <div className="border-t border-slate-100" />
+      <div className="border-t border-border-subtle" />
 
       {/* Access content */}
       {accessType === 'direct_link' && renderDirectLink()}
       {accessType === 'email_24h' && renderEmail24h()}
       {accessType === 'nsdc_onboarding' && renderNsdcOnboarding()}
       {accessType === 'custom_cta' && renderCustomCta()}
-    </div>
+    </Card>
   );
 };

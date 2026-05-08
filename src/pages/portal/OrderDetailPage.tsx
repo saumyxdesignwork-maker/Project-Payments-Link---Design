@@ -91,9 +91,9 @@ function formatAmount(amount: number, currency: string): string {
 // ─── Payment status helpers ───────────────────────────────────────────────────
 
 function PaymentStatusIcon({ status }: { status: Payment['status'] }) {
-  if (status === 'success') return <CheckCircleIcon className="h-4 w-4 text-green-500" />;
-  if (status === 'failed') return <XCircleIcon className="h-4 w-4 text-red-500" />;
-  return <ClockIcon className="h-4 w-4 text-amber-500" />;
+  if (status === 'success') return <CheckCircleIcon className="h-4 w-4 text-status-success-solid" />;
+  if (status === 'failed') return <XCircleIcon className="h-4 w-4 text-status-error-solid" />;
+  return <ClockIcon className="h-4 w-4 text-status-warning-solid" />;
 }
 
 function paymentStatusBadge(status: Payment['status']) {
@@ -129,7 +129,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
   return (
     <Card className="p-5 sm:p-6 space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
-        <h2 className="text-lg font-medium text-slate-900 leading-snug">{programName}</h2>
+        <h2 className="text-lg font-medium leading-snug text-text-primary">{programName}</h2>
         <Badge variant={paymentStatus === 'paid' ? 'success' : 'warning'}>
           {paymentStatus === 'paid' ? 'Paid' : 'Pending'}
         </Badge>
@@ -137,33 +137,33 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
         <div className="flex justify-between sm:flex-col sm:gap-0.5">
-          <span className="text-slate-500">Order ID</span>
-          <span className="font-mono text-sm text-slate-700">{id}</span>
+          <span className="text-text-muted">Order ID</span>
+          <span className="font-mono text-sm text-text-secondary">{id}</span>
         </div>
         <div className="flex justify-between sm:flex-col sm:gap-0.5">
-          <span className="text-slate-500">Created</span>
-          <span className="text-slate-800">{formatDate(createdAt)}</span>
+          <span className="text-text-muted">Created</span>
+          <span className="text-text-secondary">{formatDate(createdAt)}</span>
         </div>
         <div className="flex justify-between sm:flex-col sm:gap-0.5">
-          <span className="text-slate-500">Total</span>
-          <span className="font-semibold text-slate-900">{formatAmount(totalAmount, currency)}</span>
+          <span className="text-text-muted">Total</span>
+          <span className="font-semibold text-text-primary">{formatAmount(totalAmount, currency)}</span>
         </div>
         <div className="flex justify-between sm:flex-col sm:gap-0.5">
-          <span className="text-slate-500">Country</span>
-          <span className="text-slate-800">{isIndian ? 'India' : countryCode}</span>
+          <span className="text-text-muted">Country</span>
+          <span className="text-text-secondary">{isIndian ? 'India' : countryCode}</span>
         </div>
       </div>
 
       {/* Paid / Pending breakdown */}
-      <div className="border-t border-slate-100 pt-3 space-y-2 text-sm">
+      <div className="border-t border-border-subtle pt-3 space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">Paid</span>
-          <span className="font-semibold text-slate-900">{formatAmount(paidAmount, currency)}</span>
+          <span className="text-text-muted">Paid</span>
+          <span className="font-semibold text-text-primary">{formatAmount(paidAmount, currency)}</span>
         </div>
         {paymentStatus === 'partial' && (
           <div className="flex justify-between">
-            <span className="text-slate-500">Pending</span>
-            <span className="font-semibold text-amber-700">{formatAmount(pendingAmount, currency)}</span>
+            <span className="text-text-muted">Pending</span>
+            <span className="font-semibold text-status-warning-text">{formatAmount(pendingAmount, currency)}</span>
           </div>
         )}
       </div>
@@ -192,16 +192,16 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, currency, secti
   if (payments.length === 0) {
     return wrap(
       <Card className="p-5 sm:px-6 sm:py-4">
-        <h3 className="text-base font-medium text-slate-900 mb-3">Payment History</h3>
-        <p className="text-sm text-slate-500">No payment records found for this order.</p>
+        <h3 className="mb-3 text-base font-medium text-text-primary">Payment History</h3>
+        <p className="text-sm text-text-muted">No payment records found for this order.</p>
       </Card>,
     );
   }
 
   return wrap(
     <Card className="p-5 sm:px-6 sm:py-4">
-      <h3 className="text-base font-medium text-slate-900 mb-4">Payment History</h3>
-      <div className="divide-y divide-slate-100">
+      <h3 className="mb-4 text-base font-medium text-text-primary">Payment History</h3>
+      <div className="divide-y divide-border-subtle">
         {payments.map((payment) => {
           const badge = paymentStatusBadge(payment.status);
           return (
@@ -212,14 +212,14 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, currency, secti
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 flex-wrap">
                   <div>
-                    <p className="text-base font-medium text-slate-900 leading-normal">
+                    <p className="text-base font-medium leading-normal text-text-primary">
                       {formatAmount(payment.amount, currency)}
                       {payment.isPartial && (
-                        <span className="ml-2 text-sm font-normal text-slate-500">(Partial)</span>
+                        <span className="ml-2 text-sm font-normal text-text-muted">(Partial)</span>
                       )}
                     </p>
-                    <p className="text-sm text-slate-400 mt-0.5 leading-normal">{formatDateTime(payment.createdAt)}</p>
-                    <p className="text-sm text-slate-400 font-sans leading-normal">{payment.id}</p>
+                    <p className="mt-0.5 text-sm leading-normal text-text-muted">{formatDateTime(payment.createdAt)}</p>
+                    <p className="font-sans text-sm leading-normal text-text-muted">{payment.id}</p>
                   </div>
                   <Badge variant={badge.variant}>{badge.label}</Badge>
                 </div>
@@ -261,22 +261,22 @@ function invoiceStatusBadge(status: Invoice['status']) {
 
 const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => (
   <Card className="p-5 sm:px-6 sm:py-4">
-    <h3 className="text-base font-medium text-slate-900 mb-4">Invoices</h3>
+    <h3 className="mb-4 text-base font-medium text-text-primary">Invoices</h3>
 
     {invoices.length === 0 ? (
-      <p className="text-sm text-slate-500">No invoices found for this order.</p>
+      <p className="text-sm text-text-muted">No invoices found for this order.</p>
     ) : (
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-border-subtle">
         {invoices.map((inv) => {
           const badge = invoiceStatusBadge(inv.status);
           return (
             <div key={inv.id} className="py-3 flex items-start justify-between gap-3 flex-wrap">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-900 leading-normal">
+                <p className="text-sm font-medium leading-normal text-text-primary">
                   {inv.label ?? 'Invoice'}
                 </p>
-                <p className="text-sm text-slate-400 mt-0.5 leading-normal font-mono">{inv.id}</p>
-                <p className="text-xs text-slate-400 leading-normal">
+                <p className="mt-0.5 font-mono text-sm leading-normal text-text-muted">{inv.id}</p>
+                <p className="text-xs leading-normal text-text-muted">
                   {formatDate(inv.issuedAt)}
                 </p>
               </div>
@@ -294,7 +294,7 @@ const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => (
                   </a>
                 )}
                 {inv.status === 'pending' && (
-                  <span className="text-xs text-slate-400">Ready soon</span>
+                  <span className="text-xs text-text-muted">Ready soon</span>
                 )}
               </div>
             </div>
@@ -323,12 +323,12 @@ function refundStatusBadge(status: Refund['status']) {
 
 const RefundsSection: React.FC<RefundsSectionProps> = ({ refunds, currency }) => (
   <Card className="p-5 sm:px-6 sm:py-4">
-    <h3 className="text-base font-medium text-slate-900 mb-4">Refunds</h3>
+    <h3 className="mb-4 text-base font-medium text-text-primary">Refunds</h3>
 
     {refunds.length === 0 ? (
-      <p className="text-sm text-slate-500">No refunds have been issued for this order.</p>
+      <p className="text-sm text-text-muted">No refunds have been issued for this order.</p>
     ) : (
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-border-subtle">
         {refunds.map((refund) => {
           const badge = refundStatusBadge(refund.status);
           return (
@@ -336,17 +336,17 @@ const RefundsSection: React.FC<RefundsSectionProps> = ({ refunds, currency }) =>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 flex-wrap">
                   <div>
-                    <p className="text-base font-medium text-slate-900 leading-normal">
+                    <p className="text-base font-medium leading-normal text-text-primary">
                       {formatAmount(refund.amount, currency)}
                     </p>
-                    <p className="text-sm text-slate-400 mt-0.5 leading-normal">
+                    <p className="mt-0.5 text-sm leading-normal text-text-muted">
                       {formatDateTime(refund.initiatedAt)}
                     </p>
                     {refund.reason && (
-                      <p className="text-sm text-slate-500 mt-0.5 leading-normal">{refund.reason}</p>
+                      <p className="mt-0.5 text-sm leading-normal text-text-secondary">{refund.reason}</p>
                     )}
                     {refund.referenceId && (
-                      <p className="text-xs text-slate-400 font-mono mt-0.5 leading-normal">
+                      <p className="mt-0.5 font-mono text-xs leading-normal text-text-muted">
                         Ref: {refund.referenceId}
                       </p>
                     )}
@@ -366,17 +366,17 @@ const RefundsSection: React.FC<RefundsSectionProps> = ({ refunds, currency }) =>
 
 const Skeleton: React.FC = () => (
   <div className="space-y-4 animate-pulse">
-    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
-      <div className="h-5 bg-slate-200 rounded w-2/3" />
+    <div className="skeleton-card p-6 space-y-4">
+      <div className="h-5 w-2/3 skeleton-block" />
       <div className="h-3 bg-slate-100 rounded w-full" />
       <div className="h-3 bg-slate-100 rounded w-4/5" />
     </div>
-    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
-      <div className="h-4 bg-slate-200 rounded w-24" />
+    <div className="skeleton-card p-6 space-y-3">
+      <div className="h-4 w-24 skeleton-block" />
       <div className="h-12 bg-slate-100 rounded" />
     </div>
-    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
-      <div className="h-4 bg-slate-200 rounded w-32" />
+    <div className="skeleton-card p-6 space-y-3">
+      <div className="h-4 w-32 skeleton-block" />
       <div className="h-20 bg-slate-100 rounded" />
     </div>
   </div>
@@ -421,13 +421,13 @@ export const OrderDetailPage: React.FC = () => {
   const goToAccess = () => navigate(`/portal/access/${orderId}`);
 
   return (
-    <div className="py-8 px-4">
+    <div className="page-shell py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* ── Back link ── */}
         {/* ── Error state ── */}
         {error && (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+          <div className="status-banner status-banner-error flex items-start gap-3 text-sm">
             <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>

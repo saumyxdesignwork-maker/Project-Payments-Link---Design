@@ -98,18 +98,18 @@ const NsdcFormPanel: React.FC<NsdcFormPanelProps> = ({
       <div className="flex flex-col items-start gap-2 mb-3">
         <img src={nsdcLogo} alt="NSDC" className="h-16 w-auto" />
         <div>
-          <h3 className="text-base font-medium text-slate-900">NSDC Registration</h3>
+          <h3 className="text-base font-medium text-text-primary">NSDC Registration</h3>
 
         </div>
       </div>
 
-      <p className="text-sm text-slate-500 bg-blue-50 border border-blue-100 rounded-lg p-3 mb-3">
+      <p className="mb-3 rounded-lg border border-status-info-border bg-status-info-bg p-3 text-sm text-text-secondary">
         These details are used to register you with the NSDC government portal.
         You only need to fill this once — it will be saved to your profile.
       </p>
 
       {apiError && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-status-error-border bg-status-error-bg p-3 text-sm text-status-error-text">
           <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
           <p>{apiError}</p>
         </div>
@@ -167,9 +167,9 @@ const NsdcReadOnlySummary: React.FC<NsdcReadOnlySummaryProps> = ({ order }) => {
   const dob = formatDobDisplay(p?.dateOfBirth);
 
   const Row = ({ label, value }: { label: string; value: string }) => (
-    <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-4 py-2 border-b border-slate-100 last:border-b-0">
-      <span className="text-sm font-normal text-slate-500 sm:w-40 flex-shrink-0 leading-normal">{label}</span>
-      <span className="text-sm text-slate-900 leading-normal">{value}</span>
+    <div className="flex flex-col gap-0.5 border-b border-border-subtle py-2 last:border-b-0 sm:flex-row sm:items-baseline sm:gap-4">
+      <span className="text-sm font-normal text-text-muted sm:w-40 flex-shrink-0 leading-normal">{label}</span>
+      <span className="text-sm text-text-primary leading-normal">{value}</span>
     </div>
   );
 
@@ -178,14 +178,14 @@ const NsdcReadOnlySummary: React.FC<NsdcReadOnlySummaryProps> = ({ order }) => {
       <div className="flex flex-col items-start sm:flex-row sm:items-center gap-3 mb-4">
         <img src={nsdcLogo} alt="NSDC" className="h-12 w-auto flex-shrink-0" />
         <div className="min-w-0 flex-1 text-left">
-          <h3 className="text-base font-medium text-slate-900 leading-normal">NSDC details on file</h3>
-          <p className="text-sm text-slate-500 leading-loose">
+          <h3 className="text-base font-medium text-text-primary leading-normal">NSDC details on file</h3>
+          <p className="text-sm text-text-muted leading-loose">
             Submitted when you confirmed email and completed enrolment. Contact support to update.
           </p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-1">
+      <div className="section-card-subtle px-4 py-1">
         <Row label="Email" value={email} />
         <Row label="Name" value={fullName} />
         <Row label="Father's name" value={fatherName} />
@@ -233,8 +233,8 @@ const EmailConfirmPanel: React.FC<EmailConfirmPanelProps> = ({
 
   return (
     <div>
-      <h3 className="text-base font-medium text-slate-900 mb-1">Confirm Your Email</h3>
-      <p className="text-sm text-slate-500 mb-4">
+      <h3 className="mb-1 text-base font-medium text-text-primary">Confirm Your Email</h3>
+      <p className="mb-4 text-sm text-text-muted">
         We need to confirm your email to activate LMS access and send you login details.
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -275,25 +275,25 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
       {(isFullAccess || isPreviewAccess) && (
         <div
           className={[
-            'rounded-xl p-4 border space-y-1',
+            'status-banner space-y-1',
             isFullAccess
-              ? 'bg-green-50 border-green-200'
-              : 'bg-amber-50 border-amber-200',
+              ? 'status-banner-success'
+              : 'status-banner-warning',
           ].join(' ')}
         >
           <div className="flex items-center gap-2">
             <span
               className={[
-                'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold',
+                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold',
                 isFullAccess
-                  ? 'bg-green-100 text-green-800 border border-green-200'
-                  : 'bg-amber-100 text-amber-800 border border-amber-200',
+                  ? 'border-status-success-border bg-status-success-bg text-status-success-text'
+                  : 'border-status-warning-border bg-status-warning-bg text-status-warning-text',
               ].join(' ')}
             >
               <span
                 className={[
                   'h-1.5 w-1.5 rounded-full',
-                  isFullAccess ? 'bg-green-500' : 'bg-amber-500',
+                  isFullAccess ? 'bg-status-success-solid' : 'bg-status-warning-solid',
                 ].join(' ')}
               />
               {isFullAccess ? 'Full Access' : 'Preview Access'}
@@ -302,7 +302,7 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
           <p
             className={[
               'text-sm leading-normal',
-              isFullAccess ? 'text-green-800' : 'text-amber-800',
+              isFullAccess ? 'text-status-success-text' : 'text-status-warning-text',
             ].join(' ')}
           >
             {isFullAccess
@@ -317,14 +317,14 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
       {/* Links */}
       {hasAnyLink ? (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-slate-700">Your access links</p>
+          <p className="text-sm font-medium text-text-secondary">Your access links</p>
 
           {lmsLink && (
             <a
               href={lmsLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-normal text-primary hover:bg-primary-light transition-colors"
+              className="surface-link surface-link-primary"
             >
               <span>Go to Learner's Dashboard</span>
               <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -336,7 +336,7 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
               href={couponLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="surface-link surface-link-secondary font-medium"
             >
               <span>Coupon / Discount Access</span>
               <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -348,7 +348,7 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
               href={emilyLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="surface-link surface-link-secondary font-medium"
             >
               <span>Emily Access</span>
               <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -361,7 +361,7 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="surface-link surface-link-secondary font-medium"
             >
               <span>{link.label}</span>
               <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -369,7 +369,7 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-text-muted">
           Access links will appear here once your enrollment is processed. Contact support
           if you believe this is a mistake.
         </p>
@@ -427,11 +427,11 @@ export const AccessPanel: React.FC<AccessPanelProps> = ({ order, onOrderUpdated 
     return (
       <div className="space-y-6">
         {/* NSDC complete confirmation badge — visible at a glance when returning to the page */}
-        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <CheckCircleIcon className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+        <div className="status-banner status-banner-success flex items-center gap-2 px-4 py-3">
+          <CheckCircleIcon className="h-5 w-5 text-status-success-solid flex-shrink-0" />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-emerald-800 leading-snug">NSDC registration complete</p>
-            <p className="text-xs text-emerald-700 mt-0.5 leading-normal">Your details are on file. Access links are active below.</p>
+            <p className="text-sm font-medium text-status-success-text leading-snug">NSDC registration complete</p>
+            <p className="text-xs text-status-success-text mt-0.5 leading-normal">Your details are on file. Access links are active below.</p>
           </div>
         </div>
         <NsdcReadOnlySummary order={order} />

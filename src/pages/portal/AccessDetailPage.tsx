@@ -82,31 +82,31 @@ const StatusBanner: React.FC<StatusBannerProps> = ({ order }) => {
   const config = {
     action: {
       Icon: ExclamationTriangleIcon,
-      wrapper: 'bg-amber-50 border-amber-200',
-      icon: 'text-amber-500',
-      title: 'text-amber-900',
-      detail: 'text-amber-800',
+      wrapper: 'status-banner-warning',
+      icon: 'text-status-warning-solid',
+      title: 'text-status-warning-text',
+      detail: 'text-status-warning-text',
     },
     info: {
       Icon: InformationCircleIcon,
-      wrapper: 'bg-blue-50 border-blue-200',
-      icon: 'text-blue-500',
-      title: 'text-blue-900',
-      detail: 'text-blue-800',
+      wrapper: 'status-banner-info',
+      icon: 'text-status-info-solid',
+      title: 'text-status-info-text',
+      detail: 'text-status-info-text',
     },
     success: {
       Icon: CheckCircleIcon,
-      wrapper: 'bg-green-50 border-green-200',
-      icon: 'text-green-500',
-      title: 'text-green-900',
-      detail: 'text-green-800',
+      wrapper: 'status-banner-success',
+      icon: 'text-status-success-solid',
+      title: 'text-status-success-text',
+      detail: 'text-status-success-text',
     },
   }[status.type];
 
   const { Icon, wrapper, icon, title, detail } = config;
 
   return (
-    <div className={`flex items-start gap-3 rounded-xl border px-4 py-3.5 ${wrapper}`}>
+    <div className={`status-banner flex items-start gap-3 ${wrapper}`}>
       <Icon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${icon}`} />
       <div className="min-w-0">
         <p className={`text-sm font-medium leading-snug ${title}`}>
@@ -124,14 +124,14 @@ const StatusBanner: React.FC<StatusBannerProps> = ({ order }) => {
 
 const Skeleton: React.FC = () => (
   <div className="space-y-4 animate-pulse">
-    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
-      <div className="h-4 bg-slate-200 rounded w-40" />
+    <div className="skeleton-card p-6 space-y-4">
+      <div className="h-4 w-40 skeleton-block" />
       <div className="h-3 bg-slate-100 rounded w-full" />
       <div className="h-3 bg-slate-100 rounded w-4/5" />
       <div className="h-10 bg-slate-100 rounded-lg w-1/3" />
     </div>
-    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
-      <div className="h-4 bg-slate-200 rounded w-32" />
+    <div className="skeleton-card p-6 space-y-3">
+      <div className="h-4 w-32 skeleton-block" />
       <div className="h-16 bg-slate-100 rounded" />
     </div>
   </div>
@@ -166,13 +166,13 @@ export const AccessDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="py-8 px-4">
+    <div className="page-shell py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* ── Back link ── */}
         <Link
           to="/portal/access"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-text-muted transition-colors hover:text-primary"
         >
           <ArrowLeftIcon className="h-4 w-4" />
           Back to Get Access
@@ -180,7 +180,7 @@ export const AccessDetailPage: React.FC = () => {
 
         {/* ── Error state ── */}
         {error && (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+          <div className="status-banner status-banner-error flex items-start gap-3 text-sm">
             <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>
@@ -194,10 +194,10 @@ export const AccessDetailPage: React.FC = () => {
           <>
             {/* Program name header */}
             <div>
-              <h1 className="text-xl font-medium text-slate-900 leading-snug">
+              <h1 className="text-xl font-medium leading-snug text-text-primary">
                 {order.programName}
               </h1>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="mt-1 text-sm text-text-muted">
                 Complete any required steps below to activate your access.
               </p>
             </div>
@@ -208,7 +208,7 @@ export const AccessDetailPage: React.FC = () => {
             {/* A. Per-product access cards — shown when products are attached to the order */}
             {(order.purchasedProducts ?? []).length > 0 && (
               <Card className="p-5 sm:p-6">
-                <h2 className="text-base font-medium text-slate-900 mb-4">Your Products</h2>
+                <h2 className="mb-4 text-base font-medium text-text-primary">Your Products</h2>
                 <div className="space-y-3">
                   {(order.purchasedProducts ?? []).map((product) => (
                     <ProductAccessCard
@@ -231,7 +231,7 @@ export const AccessDetailPage: React.FC = () => {
 
             {/* B. Access panel — NSDC form / email confirm / access links */}
             <Card id="get-access" className="p-5 sm:p-6 scroll-mt-6">
-              <h2 className="text-base font-medium text-slate-900 mb-4">
+              <h2 className="mb-4 text-base font-medium text-text-primary">
                 {order.nsdcRequired && !order.nsdcCompleted
                   ? 'Complete NSDC Registration'
                   : 'Access Details'}

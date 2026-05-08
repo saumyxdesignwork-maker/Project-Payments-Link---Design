@@ -18,26 +18,25 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   return (
     <div className="w-full">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor={inputId} className="block text-sm font-normal text-slate-700 leading-snug">
+        <label htmlFor={inputId} className="block text-sm font-normal text-text-secondary leading-snug">
           {label}
         </label>
         <input
           ref={ref}
           id={inputId}
           className={twMerge(
-            "block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm py-2.5 px-3 border bg-white text-slate-900 placeholder-slate-400",
-            error && "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500",
+            "block w-full rounded-lg border border-border bg-surface-card px-3 py-2.5 text-text-primary shadow-sm placeholder:text-text-muted focus:border-primary focus:ring-primary sm:text-sm",
+            error && "border-status-error-border text-status-error-text placeholder:text-status-error-text/70 focus:border-status-error-solid focus:ring-status-error-solid",
             className
           )}
           {...props}
         />
       </div>
       {error && (
-        <p className="mt-1.5 text-xs text-red-600 animate-fadeIn">{error}</p>
+        <p className="mt-1.5 text-xs text-status-error-text animate-fadeIn">{error}</p>
       )}
     </div>
   );
 });
 
 Input.displayName = "Input";
-

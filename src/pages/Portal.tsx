@@ -299,7 +299,7 @@ const Step1OrderSummary: React.FC<Step1Props> = ({ ctx, onConfirm }) => {
           <button
             type="button"
             onClick={resetToEmailStep}
-            className="text-sm text-slate-500 hover:text-slate-800 underline underline-offset-2"
+            className="text-sm text-text-muted hover:text-text-secondary underline underline-offset-2"
           >
             ← Change email
           </button>
@@ -848,7 +848,7 @@ export const PortalPage: React.FC = () => {
   const primaryCourse = ctx.courses[0];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
+    <div className="page-shell py-10 px-4">
       <div className="max-w-lg mx-auto">
         <Card className="p-6 sm:p-8">
           {/* Step indicator — hide on final success */}

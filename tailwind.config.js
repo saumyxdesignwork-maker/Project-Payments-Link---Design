@@ -13,11 +13,58 @@ export default {
           light: '#e8f0eb',
           foreground: '#ffffff',
         },
+        surface: {
+          page: '#f8fafc',
+          card: '#ffffff',
+          subtle: '#f8fafc',
+          inverse: '#041B01',
+        },
+        text: {
+          primary: '#0f172a',
+          secondary: '#334155',
+          muted: '#64748b',
+          inverse: '#f8fafc',
+        },
+        border: {
+          subtle: '#e2e8f0',
+          DEFAULT: '#cbd5e1',
+          strong: '#94a3b8',
+        },
+        status: {
+          success: {
+            bg: '#dcfce7',
+            border: '#bbf7d0',
+            text: '#166534',
+            solid: '#22c55e',
+          },
+          warning: {
+            bg: '#fef3c7',
+            border: '#fde68a',
+            text: '#92400e',
+            solid: '#f59e0b',
+          },
+          info: {
+            bg: '#dbeafe',
+            border: '#bfdbfe',
+            text: '#1d4ed8',
+            solid: '#3b82f6',
+          },
+          error: {
+            bg: '#fee2e2',
+            border: '#fecaca',
+            text: '#b91c1c',
+            solid: '#ef4444',
+          },
+        },
         /** Partial-payment hero / dark panels — brand fill */
         brand: {
           hero: '#041B01',
         },
-        whatsapp: '#25D366',
+        whatsapp: {
+          DEFAULT: '#25D366',
+          hover: '#1ebe5d',
+          foreground: '#041A01',
+        },
       },
       fontFamily: {
         sans: ['Fira Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],

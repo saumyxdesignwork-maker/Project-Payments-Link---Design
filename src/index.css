@@ -41,7 +41,7 @@
 
 @layer base {
   body {
-    @apply font-sans antialiased text-slate-900 text-base;
+    @apply font-sans antialiased text-text-primary text-base bg-surface-page;
   }
 
   @media (min-width: 768px) {
@@ -58,5 +58,67 @@
     li {
       @apply leading-[1.45em];
     }
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply min-h-screen bg-surface-page;
+  }
+
+  .section-card {
+    @apply rounded-xl border border-border bg-surface-card shadow-sm overflow-hidden;
+  }
+
+  .section-card-subtle {
+    @apply rounded-xl border border-border-subtle bg-surface-subtle;
+  }
+
+  .section-card-inverse {
+    @apply rounded-2xl bg-surface-inverse text-text-inverse shadow-lg overflow-hidden;
+  }
+
+  .status-banner {
+    @apply rounded-xl border px-4 py-3.5;
+  }
+
+  .status-banner-success {
+    @apply border-status-success-border bg-status-success-bg text-status-success-text;
+  }
+
+  .status-banner-warning {
+    @apply border-status-warning-border bg-status-warning-bg text-status-warning-text;
+  }
+
+  .status-banner-info {
+    @apply border-status-info-border bg-status-info-bg text-status-info-text;
+  }
+
+  .status-banner-error {
+    @apply border-status-error-border bg-status-error-bg text-status-error-text;
+  }
+
+  .skeleton-card {
+    @apply rounded-xl border border-border bg-surface-card animate-pulse;
+  }
+
+  .skeleton-block {
+    @apply rounded bg-slate-200;
+  }
+
+  .surface-link {
+    @apply flex items-center justify-between w-full rounded-lg border border-border bg-surface-card px-4 py-3 text-sm transition-colors;
+  }
+
+  .surface-link-primary {
+    @apply text-primary hover:bg-primary-light;
+  }
+
+  .surface-link-secondary {
+    @apply text-text-secondary hover:bg-surface-subtle;
+  }
+
+  .eyebrow-label {
+    @apply text-xs font-medium uppercase tracking-wide text-text-muted;
   }
 }

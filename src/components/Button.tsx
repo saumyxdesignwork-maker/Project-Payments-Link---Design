@@ -2,7 +2,7 @@ import React from 'react';
 import { twMerge } from 'tailwind-merge';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'success' | 'warning' | 'ghost' | 'inverse';
   fullWidth?: boolean;
 }
 
@@ -17,8 +17,12 @@ export const Button: React.FC<ButtonProps> = ({
   
   const variants = {
     primary: "bg-primary text-white hover:bg-primary-hover focus:ring-primary",
-    secondary: "bg-slate-800 text-white hover:bg-slate-900 focus:ring-slate-500",
-    outline: "bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-slate-500"
+    secondary: "bg-text-primary text-white hover:bg-text-secondary focus:ring-border-strong",
+    outline: "border border-border bg-transparent text-text-secondary hover:bg-surface-subtle focus:ring-border-strong",
+    success: "bg-status-success-solid text-white hover:bg-green-600 focus:ring-status-success-solid",
+    warning: "bg-status-warning-solid text-slate-900 hover:bg-amber-400 focus:ring-status-warning-solid",
+    ghost: "bg-transparent text-primary hover:bg-primary-light focus:ring-primary",
+    inverse: "bg-surface-card/10 text-text-inverse border border-white/15 hover:bg-surface-card/20 focus:ring-white/40"
   };
 
   return (
@@ -35,4 +39,3 @@ export const Button: React.FC<ButtonProps> = ({
     </button>
   );
 };
-
