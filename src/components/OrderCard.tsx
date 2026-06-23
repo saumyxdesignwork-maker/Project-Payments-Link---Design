@@ -75,8 +75,20 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
     programName,
     createdAt,
     paymentStatus,
+    totalAmount,
+    pendingAmount,
+    currency,
   } = order;
   const accessStatus = getAccessStatus(order);
+
+  const formatAmount = (amount: number) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    }).format(amount);
+
+  const paidAmount = totalAmount - pendingAmount;
 
   const AccessIcon =
     accessStatus.type === 'action'
@@ -112,6 +124,19 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         <Badge variant={paymentStatus === 'paid' ? 'success' : 'warning'} className="flex-shrink-0">
           {paymentStatus === 'paid' ? 'Paid' : 'Pending'}
         </Badge>
+      </div>
+
+      {/* ── Price row ── */}
+      <div className="flex items-center gap-3 text-sm">
+        {paymentStatus === 'partial' ? (
+          <>
+            <span className="font-medium text-text-primary">{formatAmount(paidAmount)} paid</span>
+            <span className="text-text-muted">·</span>
+            <span className="text-status-warning-text font-medium">{formatAmount(pendingAmount)} remaining</span>
+          </>
+        ) : (
+          <span className="font-medium text-text-primary">{formatAmount(totalAmount)}</span>
+        )}
       </div>
 
       {/* ── Access status ── */}
