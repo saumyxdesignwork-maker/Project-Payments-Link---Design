@@ -85,6 +85,13 @@ interface AppState {
    */
   checkoutDiscountMultiplier: number;
   setCheckoutDiscountMultiplier: (m: number) => void;
+
+  /**
+   * Flat rupee discount applied at checkout (e.g. 500 for FLAT500 coupon).
+   * Subtracted after the percentage multiplier. 0 means no flat discount.
+   */
+  checkoutFlatDiscount: number;
+  setCheckoutFlatDiscount: (n: number) => void;
 }
 
 const defaultDurationId =
@@ -113,6 +120,7 @@ export const useStore = create<AppState>((set) => ({
   postPaymentContext: null,
   checkoutAddonsTotal: 0,
   checkoutDiscountMultiplier: 1,
+  checkoutFlatDiscount: 0,
 
   setCohortId: (id) => set({ selectedCohortId: id }),
   setDurationId: (id) => set({ selectedDurationId: id }),
@@ -148,6 +156,7 @@ export const useStore = create<AppState>((set) => ({
   setPostPaymentContext: (ctx) => set({ postPaymentContext: ctx }),
   setCheckoutAddonsTotal: (n) => set({ checkoutAddonsTotal: n }),
   setCheckoutDiscountMultiplier: (m) => set({ checkoutDiscountMultiplier: m }),
+  setCheckoutFlatDiscount: (n) => set({ checkoutFlatDiscount: n }),
 
   resetToStep1: () =>
     set({
@@ -161,5 +170,6 @@ export const useStore = create<AppState>((set) => ({
       duplicateMaskedEmail: '',
       checkoutAddonsTotal: 0,
       checkoutDiscountMultiplier: 1,
+      checkoutFlatDiscount: 0,
     }),
 }));

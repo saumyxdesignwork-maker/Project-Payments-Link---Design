@@ -20,9 +20,13 @@ import {
 } from '@heroicons/react/24/solid';
 import { clsx } from 'clsx';
 
-/** Prototype: sales coupon = 20% off (full or partial). Replace with API validation. */
+/** NSDC coupon: 20% percentage off. */
 const DUMMY_COUPON_CODE = 'SALES20';
 const COUPON_DISCOUNT_MULTIPLIER = 0.8;
+
+/** Non-NSDC coupon: ₹500 flat off. */
+const FLAT_COUPON_CODE = 'FLAT500';
+const FLAT_DISCOUNT_AMOUNT = 500;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -249,6 +253,7 @@ export const ReviewPage: React.FC = () => {
     resetDuplicateCheck, resetToStep1,
     setCheckoutAddonsTotal,
     setCheckoutDiscountMultiplier,
+    setCheckoutFlatDiscount,
     programType,
   } = useStore();
 
@@ -277,14 +282,19 @@ export const ReviewPage: React.FC = () => {
   const partialDueTodayRaw = partialBookingDueToday(addonsTotal);
   const courseRemainderForSchedule = courseInstallmentsRemainder();
 
-  const discMult = couponApplied ? COUPON_DISCOUNT_MULTIPLIER : 1;
+  const discMult = (isNsdc && couponApplied) ? COUPON_DISCOUNT_MULTIPLIER : 1;
   const applyDisc = (amount: number) => applyCheckoutDiscount(amount, discMult);
   const displayFeeDiscounted = applyDisc(displayFee);
   const partialDueTodayDiscounted = applyDisc(partialDueTodayRaw);
   const courseRemainderDiscounted = applyDisc(courseRemainderForSchedule);
 
-  const amountPayableToday =
-    paymentMode === 'partial' ? partialDueTodayDiscounted : displayFeeDiscounted;
+  /** Flat discount only applies on non-NSDC when that coupon was applied. */
+  const activeFlatDiscount = (!isNsdc && couponApplied) ? FLAT_DISCOUNT_AMOUNT : 0;
+
+  const amountPayableToday = Math.max(
+    0,
+    (paymentMode === 'partial' ? partialDueTodayDiscounted : displayFeeDiscounted) - activeFlatDiscount
+  );
 
   /** 18% GST (inclusive) shown on non-NSDC Indian orders only. */
   const GST_RATE = 0.18;
@@ -334,7 +344,8 @@ export const ReviewPage: React.FC = () => {
       setCouponError('Enter a coupon code.');
       return;
     }
-    if (code !== DUMMY_COUPON_CODE) {
+    const validCode = isNsdc ? DUMMY_COUPON_CODE : FLAT_COUPON_CODE;
+    if (code !== validCode) {
       setCouponError('Invalid coupon code.');
       return;
     }
@@ -351,9 +362,8 @@ export const ReviewPage: React.FC = () => {
   const handlePay = () => {
     setIsPaying(true);
     setCheckoutAddonsTotal(addonsTotal);
-    setCheckoutDiscountMultiplier(couponApplied ? COUPON_DISCOUNT_MULTIPLIER : 1);
-    // Navigate to the Payment Confirmed screen first. From there the user
-    // chooses when to begin the registration journey (/portal/enroll).
+    setCheckoutDiscountMultiplier(isNsdc && couponApplied ? COUPON_DISCOUNT_MULTIPLIER : 1);
+    setCheckoutFlatDiscount(!isNsdc && couponApplied ? FLAT_DISCOUNT_AMOUNT : 0);
     setTimeout(() => navigate('/success'), 800);
   };
 
@@ -597,7 +607,9 @@ export const ReviewPage: React.FC = () => {
                 <h3 className="text-base font-medium mb-1 text-slate-900">Order Summary</h3>
                 {couponApplied && (
                   <p className="text-xs text-emerald-700 font-normal mb-3">
-                    {DUMMY_COUPON_CODE} applied · 20% off eligible lines
+                    {isNsdc
+                      ? `${DUMMY_COUPON_CODE} applied · 20% off eligible lines`
+                      : `${FLAT_COUPON_CODE} applied · ₹500 off`}
                   </p>
                 )}
 
@@ -648,6 +660,13 @@ export const ReviewPage: React.FC = () => {
                     {applicableTax > 0 ? formatPrice(applicableTax) : '₹0'}
                   </span>
                 </div>
+
+                {activeFlatDiscount > 0 && (
+                  <div className="flex justify-between items-start gap-2 text-sm py-2 border-t border-slate-100">
+                    <span className="text-emerald-700">Coupon Discount ({FLAT_COUPON_CODE})</span>
+                    <span className="text-emerald-700 text-right">−{formatPrice(activeFlatDiscount)}</span>
+                  </div>
+                )}
 
                 <div className="border-t border-slate-200 pt-4 mb-6">
                   <div className="flex justify-between items-baseline">
@@ -701,7 +720,7 @@ export const ReviewPage: React.FC = () => {
                         <input
                           id="coupon-code"
                           type="text"
-                          placeholder="e.g. SALES20"
+                          placeholder={isNsdc ? 'e.g. SALES20' : 'e.g. FLAT500'}
                           value={couponInput}
                           onChange={(e) => {
                             setCouponInput(e.target.value);
@@ -728,13 +747,20 @@ export const ReviewPage: React.FC = () => {
                       ) : null}
                     </div>
                     <p className="text-sm text-slate-400 leading-relaxed">
-                      Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off
-                      full or partial checkout.
+                      {isNsdc ? (
+                        <>Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off.</>
+                      ) : (
+                        <>Prototype: use <code className="font-mono text-slate-600">{FLAT_COUPON_CODE}</code> for ₹500 flat off.</>
+                      )}
                     </p>
                   </>
                 ) : (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
-                    <span className="font-medium">{DUMMY_COUPON_CODE} · 20% off applied</span>
+                    <span className="font-medium">
+                      {isNsdc
+                        ? `${DUMMY_COUPON_CODE} · 20% off applied`
+                        : `${FLAT_COUPON_CODE} · ₹500 off applied`}
+                    </span>
                     <button
                       type="button"
                       onClick={handleRemoveCoupon}

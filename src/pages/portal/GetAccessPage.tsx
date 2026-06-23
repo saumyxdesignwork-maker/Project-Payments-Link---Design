@@ -162,7 +162,7 @@ const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
               ) : (
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onChangeBatch(order); }}
-                  className="text-xs font-medium text-primary hover:underline underline-offset-2"
+                  className="text-xs font-medium text-blue-600 hover:underline underline-offset-2"
                 >
                   Change Batch
                 </button>

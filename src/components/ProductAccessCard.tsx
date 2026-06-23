@@ -24,7 +24,7 @@ import { Badge } from './Badge';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-export type AccessType = 'direct_link' | 'email_24h' | 'nsdc_onboarding' | 'custom_cta';
+export type AccessType = 'direct_link' | 'email_24h' | 'nsdc_onboarding' | 'custom_cta' | 'non_nsdc_completion';
 
 export interface NsdcOnboardingSteps {
   /** Full URL to the WhatsApp group. */
@@ -48,6 +48,12 @@ export interface ProductAccessCardProps {
     label: string;
     url: string;
     description?: string;
+  };
+  /** Required when accessType === 'non_nsdc_completion'. */
+  nonNsdcCtaUrls?: {
+    whatsappUrl: string;
+    dashboardUrl: string;
+    ordersPath: string;
   };
   /** Layout for NSDC step rows. Use stacked in narrow card contexts such as the success page. */
   stepLayout?: 'inline' | 'stacked';
@@ -74,6 +80,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
   ctaUrl,
   nsdcSteps,
   customCta,
+  nonNsdcCtaUrls,
   stepLayout = 'inline',
 }) => {
   const navigate = useNavigate();
@@ -196,6 +203,37 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
     );
   };
 
+  // ── non_nsdc_completion ──────────────────────────────────────────────────────
+  const renderNonNsdcCompletion = () => {
+    if (!nonNsdcCtaUrls) return null;
+    const { whatsappUrl, ordersPath } = nonNsdcCtaUrls;
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-text-muted">You're all set! Here's what to do next.</p>
+        <div className="flex flex-col gap-2">
+          {/* Join WhatsApp */}
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-md bg-whatsapp px-3 py-2 text-sm font-normal text-whatsapp-foreground transition-colors hover:bg-whatsapp-hover focus:outline-none focus:ring-2 focus:ring-whatsapp focus:ring-offset-1 w-fit"
+          >
+            <img src={whatsappIcon} alt="" className="h-4 w-4" aria-hidden="true" />
+            Join WhatsApp group
+          </a>
+          {/* View My Orders */}
+          <button
+            type="button"
+            onClick={() => navigate(ordersPath)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 w-fit"
+          >
+            View My Orders
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // ── Card shell ──────────────────────────────────────────────────────────────
   return (
     <Card className="p-4 space-y-3">
@@ -215,6 +253,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
       {accessType === 'email_24h' && renderEmail24h()}
       {accessType === 'nsdc_onboarding' && renderNsdcOnboarding()}
       {accessType === 'custom_cta' && renderCustomCta()}
+      {accessType === 'non_nsdc_completion' && renderNonNsdcCompletion()}
     </Card>
   );
 };
