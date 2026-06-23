@@ -224,7 +224,7 @@ const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
   if (products.length === 0) {
     if (isDirectLms) {
       return (
-        <Card className="cursor-pointer transition-shadow hover:shadow-md">
+        <Card>
           <a
             href={order.lmsLink}
             target="_blank"
@@ -239,14 +239,14 @@ const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
     }
 
     return (
-      <Card className="transition-shadow hover:shadow-md">
+      <Card>
         {orderHeader}
       </Card>
     );
   }
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card>
       {orderHeader}
       {productSection}
     </Card>
