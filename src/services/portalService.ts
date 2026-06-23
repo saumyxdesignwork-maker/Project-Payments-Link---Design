@@ -280,15 +280,6 @@ const MOCK_ORDERS: Order[] = [
         productTag: 'Main Program',
         accessType: 'email_24h',
       },
-      {
-        id: 'prod-002-bonus',
-        name: 'Live Q&A Session Bundle',
-        productTag: 'Bonus',
-        accessType: 'custom_cta',
-        ctaLabel: 'Schedule your session',
-        ctaUrl: 'https://calendly.com/growthschool/qa-session',
-        ctaDescription: 'Book a 1-on-1 live session with your instructor at a time that suits you.',
-      },
     ],
   },
 ];
