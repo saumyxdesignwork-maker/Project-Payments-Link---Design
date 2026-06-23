@@ -239,29 +239,15 @@ const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
     }
 
     return (
-      <Card className="cursor-pointer transition-shadow hover:shadow-md">
-        <Link
-          to={`/portal/access/${order.id}`}
-          className="block"
-          aria-label={`Go to access details for ${order.programName}`}
-        >
-          {orderHeader}
-        </Link>
+      <Card className="transition-shadow hover:shadow-md">
+        {orderHeader}
       </Card>
     );
   }
 
-  // When per-product cards are present, the header links to the detail page
-  // but is not the sole click target — the product cards have their own CTAs.
   return (
     <Card className="transition-shadow hover:shadow-md">
-      <Link
-        to={`/portal/access/${order.id}`}
-        className="block"
-        aria-label={`Go to access details for ${order.programName}`}
-      >
-        {orderHeader}
-      </Link>
+      {orderHeader}
       {productSection}
     </Card>
   );
