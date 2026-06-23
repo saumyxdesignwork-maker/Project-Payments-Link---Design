@@ -33,6 +33,8 @@ import { getOrders } from '../../services/portalService';
 import { useStore } from '../../store/useStore';
 import { Card } from '../../components/Card';
 import { ProductAccessCard } from '../../components/ProductAccessCard';
+import { ChangeCohortModal } from '../../components/ChangeCohortModal';
+import { SuccessToast } from '../../components/SuccessToast';
 import { formatDate } from '../../utils/formatters';
 import type { Order } from '../../types/order';
 
@@ -121,11 +123,11 @@ const AccessStatusBadge: React.FC<AccessStatusBadgeProps> = ({ type, label }) =>
 
 interface AccessCardProps {
   order: Order;
+  onChangeBatch: (order: Order) => void;
 }
 
-const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
+const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
   const status = getAccessStatus(order);
-
 
   const isDirectLms = status.type === 'success' && !!order.lmsLink;
   const toolCount = (order.toolAccesses ?? []).length;
@@ -146,12 +148,26 @@ const AccessCard: React.FC<AccessCardProps> = ({ order }) => {
             <AccessStatusBadge type={status.type} label={status.label} />
           </div>
 
-          {/* Cohort date below */}
+          {/* Cohort date + Change Batch button */}
           {order.cohortStartDate && (
-            <span className="inline-flex items-center gap-1 text-sm text-text-muted">
-              <CalendarDaysIcon className="h-3.5 w-3.5 flex-shrink-0" />
-              Cohort: {formatDate(order.cohortStartDate)}
-            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1 text-sm text-text-muted">
+                <CalendarDaysIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                Batch: {formatDate(order.cohortStartDate)}
+              </span>
+              {order.cohortChangeUsed ? (
+                <span className="text-xs text-text-muted border border-border-subtle rounded-full px-2 py-0.5">
+                  Batch Updated
+                </span>
+              ) : (
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onChangeBatch(order); }}
+                  className="text-xs font-medium text-primary hover:underline underline-offset-2"
+                >
+                  Change Batch
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -308,6 +324,8 @@ export const GetAccessPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [changingOrder, setChangingOrder] = useState<Order | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -367,7 +385,11 @@ export const GetAccessPage: React.FC = () => {
         {!loading && !error && sortedOrders.length > 0 && (
           <div className="space-y-4">
             {sortedOrders.map((order) => (
-              <AccessCard key={order.id} order={order} />
+              <AccessCard
+                key={order.id}
+                order={order}
+                onChangeBatch={(o) => setChangingOrder(o)}
+              />
             ))}
           </div>
         )}
@@ -381,6 +403,34 @@ export const GetAccessPage: React.FC = () => {
         </p>
 
       </div>
+
+      {/* Batch change modal — mounted at page level so it sits above all cards */}
+      <SuccessToast
+        show={showToast}
+        message="Batch updated successfully"
+        onDone={() => setShowToast(false)}
+      />
+
+      {changingOrder && (
+        <ChangeCohortModal
+          isOpen={!!changingOrder}
+          onClose={() => setChangingOrder(null)}
+          orderId={changingOrder.id}
+          currentCohortId={changingOrder.cohortId}
+          currentCohortStartDate={changingOrder.cohortStartDate}
+          onSuccess={(cohortStartDate) => {
+            setOrders((prev) =>
+              prev.map((o) =>
+                o.id === changingOrder.id
+                  ? { ...o, cohortStartDate, cohortChangeUsed: true }
+                  : o,
+              ),
+            );
+            setChangingOrder(null);
+            setShowToast(true);
+          }}
+        />
+      )}
     </div>
   );
 };

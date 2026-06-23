@@ -221,6 +221,20 @@ export interface Order {
    * Backend: populate from the cohort record linked to this order.
    */
   cohortStartDate?: string;
+
+  /**
+   * The cohort ID (e.g. "c3") the learner is currently enrolled in.
+   * Used by the portal batch-change flow to identify the current selection.
+   * Backend: foreign key to the cohorts table on the order record.
+   */
+  cohortId?: string;
+
+  /**
+   * True once the customer has exercised their one-time batch change.
+   * The portal hides the "Change Batch" button when this is true.
+   * Backend: set on PATCH /api/portal/orders/:id/cohort; never resets.
+   */
+  cohortChangeUsed?: boolean;
 }
 
 /**

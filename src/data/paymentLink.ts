@@ -103,10 +103,10 @@ export const PROGRAM_DATA: ProgramDetails = {
   ],
 
   cohorts: [
-    { id: "c3", startDate: "2025-12-14", schedule: "7–9 PM IST",         seatsLeft: 5 },
-    { id: "c4", startDate: "2025-12-18", schedule: "Weekend Track (IST)", seatsLeft: 12 },
-    { id: "c5", startDate: "2026-01-04", schedule: "7–9 PM IST" },
-    { id: "c6", startDate: "2026-01-12", schedule: "Weekend Track (IST)" },
+    { id: "c3", startDate: "2026-07-05", schedule: "7–9 PM IST",         seatsLeft: 5 },
+    { id: "c4", startDate: "2026-07-12", schedule: "Weekend Track (IST)", seatsLeft: 12 },
+    { id: "c5", startDate: "2026-08-01", schedule: "7–9 PM IST" },
+    { id: "c6", startDate: "2026-08-16", schedule: "Weekend Track (IST)" },
   ],
   defaultCohortId: "c3",
 

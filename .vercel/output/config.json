@@ -19,6 +19,7 @@
     }
   ],
   "framework": {
+    "slug": "vite",
     "version": "5.4.21"
   },
   "crons": []

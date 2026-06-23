@@ -7,9 +7,10 @@ import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
-import { Accordion } from '../components/Accordion';
-import { formatCheckoutPrice, formatCohortDate, getCohortRelativeDays } from '../utils/formatters';
+import { formatCheckoutPrice } from '../utils/formatters';
+import { CohortSelector } from '../components/CohortSelector';
 import nsdcLogo from '../assets/nsdc-logo.svg';
+import outskillLogo from '../assets/outskill-logo.svg';
 
 export const DetailsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,8 +18,11 @@ export const DetailsPage: React.FC = () => {
     selectedCohortId, 
     setCohortId, 
     userDetails, 
-    setUserDetails 
+    setUserDetails,
+    programType,
   } = useStore();
+
+  const isNsdc = programType === 'nsdc';
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -51,7 +55,6 @@ export const DetailsPage: React.FC = () => {
     }
   };
 
-  const selectedCohort = PROGRAM_DATA.cohorts.find(c => c.id === selectedCohortId);
   const isIndia = isIndianCountryCode(userDetails.countryCode);
 
   return (
@@ -60,13 +63,13 @@ export const DetailsPage: React.FC = () => {
         <div className="flex flex-col gap-1 mb-2">
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl font-medium text-slate-900">{PROGRAM_DATA.title}</h1>
-            {PROGRAM_DATA.isNsdcAligned && (
+            {isNsdc && PROGRAM_DATA.isNsdcAligned && (
                <Badge className="bg-yellow-100 text-yellow-800 border border-yellow-200 font-normal">
                  NSDC Training Partnership
                </Badge>
             )}
           </div>
-          {isIndia && (
+          {isNsdc && isIndia && (
             <div className="flex flex-wrap gap-x-4 mt-1">
               <span className="text-sm text-slate-600">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
               <span className="text-sm text-slate-600">SKU ID: {PROGRAM_DATA.sku_id}</span>
@@ -80,37 +83,11 @@ export const DetailsPage: React.FC = () => {
         <div className="space-y-8">
           <section>
             <h2 className="text-base font-medium text-slate-900 mb-4">Select Cohort</h2>
-            <div className="space-y-2">
-              <select
-                value={selectedCohortId}
-                onChange={(e) => setCohortId(e.target.value)}
-                className="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm py-2.5 pl-4 pr-10 border bg-white appearance-none"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                  backgroundPosition: 'right 1rem center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '1.5em 1.5em'
-                }}
-              >
-                {PROGRAM_DATA.cohorts.map((cohort) => (
-                  <option key={cohort.id} value={cohort.id}>
-                    {formatCohortDate(cohort.startDate)}
-                  </option>
-                ))}
-              </select>
-              {selectedCohort && (
-                <div className="text-sm text-slate-500 px-1">
-                  <span>{selectedCohort.schedule}</span>
-                  {(() => {
-                    const hint = getCohortRelativeDays(selectedCohort.startDate);
-                    return hint ? <span className="ml-2 text-slate-400">({hint})</span> : null;
-                  })()}
-                  {selectedCohort.seatsLeft !== undefined && selectedCohort.seatsLeft < 20 && (
-                    <span className="ml-2 text-amber-700">· {selectedCohort.seatsLeft} spots left</span>
-                  )}
-                </div>
-              )}
-            </div>
+            <CohortSelector
+              value={selectedCohortId}
+              onChange={setCohortId}
+              cohorts={PROGRAM_DATA.cohorts}
+            />
           </section>
 
           <section>
@@ -199,29 +176,6 @@ export const DetailsPage: React.FC = () => {
 
         {/* Right Column - Summary (Static on this page) */}
         <div className="md:sticky md:top-6 h-fit">
-           {/* Included Features Accordion */}
-           <div className="mb-6">
-              <Accordion 
-                items={[{
-                  id: 'features',
-                  title: 'What\'s included in the Program',
-                  content: (
-                    <ul className="space-y-3">
-                       {PROGRAM_DATA.features?.map((feature, idx) => (
-                         <li key={idx} className="flex items-start gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0">
-                              <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 0 1 1.04-.208Z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-slate-700 text-sm">{feature}</span>
-                         </li>
-                       ))}
-                    </ul>
-                  )
-                }]}
-                defaultOpen={false}
-              />
-           </div>
-
           <Card className="p-6 bg-slate-50 border-slate-200">
             <h3 className="text-base font-medium text-slate-900 mb-4">Payment Summary</h3>
             <div className="space-y-3">
@@ -243,11 +197,9 @@ export const DetailsPage: React.FC = () => {
             </div>
           </Card>
 
-          {PROGRAM_DATA.isNsdcAligned && (
+          {isNsdc && PROGRAM_DATA.isNsdcAligned ? (
             <Card className="p-6 bg-gradient-to-br from-orange-50 to-white border-orange-100 mt-6 relative overflow-hidden">
-               {/* Decorative background circle */}
                <div className="absolute -top-6 -right-6 w-24 h-24 bg-orange-100 rounded-full opacity-50"></div>
-               
                <div className="relative z-10">
                  <div className="flex flex-col items-start gap-3">
                    <img
@@ -259,6 +211,25 @@ export const DetailsPage: React.FC = () => {
                      <h3 className="font-medium text-slate-900">NSDC Certification Included</h3>
                      <p className="text-sm text-slate-600 mt-1">
                        Upon successful completion, you will receive a government-recognized certificate from the {PROGRAM_DATA.sscName}.
+                     </p>
+                   </div>
+                 </div>
+               </div>
+            </Card>
+          ) : (
+            <Card className="p-6 bg-gradient-to-br from-green-50 to-white border-green-100 mt-6 relative overflow-hidden">
+               <div className="absolute -top-6 -right-6 w-24 h-24 bg-green-100 rounded-full opacity-50"></div>
+               <div className="relative z-10">
+                 <div className="flex flex-col items-start gap-3">
+                   <img
+                     src={outskillLogo}
+                     alt="Outskill"
+                     className="h-6 w-auto flex-shrink-0 object-contain"
+                   />
+                   <div>
+                     <h3 className="font-medium text-slate-900">Certification of Completion included</h3>
+                     <p className="text-sm text-slate-600 mt-1">
+                       Upon successful completion, you will receive a Certificate of Completion from Outskill.
                      </p>
                    </div>
                  </div>

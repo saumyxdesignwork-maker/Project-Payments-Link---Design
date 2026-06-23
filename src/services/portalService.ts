@@ -187,8 +187,9 @@ const MOCK_ORDERS: Order[] = [
       })),
     },
     paidScheduleSteps: 1, // only booking paid; bump to 2+ to simulate more progress in UI
-    // Cohort starts ~12 days from now — within the 14-day proximity window for access upgrade
-    cohortStartDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    cohortStartDate: '2026-07-05',
+    cohortId: 'c3',
+    cohortChangeUsed: false,
     // Per-product access configs — each product has its own onboarding state
     purchasedProducts: [
       {
@@ -269,6 +270,9 @@ const MOCK_ORDERS: Order[] = [
     emilyLink: 'https://meetemily.ai/',
     customerEmail: 'learner@example.com',
     customerName: 'Demo Learner',
+    cohortStartDate: '2026-08-01',
+    cohortId: 'c5',
+    cohortChangeUsed: false,
     purchasedProducts: [
       {
         id: 'prod-002-main',
@@ -531,4 +535,42 @@ export async function submitEmailConfirmation(
     order.emailConfirmed = true;
   }
   return { emailConfirmed: true };
+}
+
+/**
+ * Changes the cohort (batch) for an existing order. This is a one-time operation —
+ * the backend sets cohortChangeUsed = true and never allows it to be reset.
+ *
+ * Real version: PATCH /api/portal/orders/:orderId/cohort
+ * Body: { cohortId: string }
+ * Returns: { cohortId, cohortStartDate }
+ *
+ * Backend side effects:
+ *   - Updates the cohort FK on the order record
+ *   - Sets cohortChangeUsed = true (irreversible)
+ *   - Re-evaluates LMS access proximity if applicable
+ *   - Sends a confirmation email to the learner
+ */
+export async function changeCohort(
+  orderId: string,
+  newCohortId: string,
+): Promise<{ cohortId: string; cohortStartDate: string }> {
+  await delay(900);
+  // Replace: return fetch(`/api/portal/orders/${orderId}/cohort`, {
+  //   method: 'PATCH',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({ cohortId: newCohortId }),
+  // }).then(r => r.json())
+
+  const cohort = PROGRAM_DATA.cohorts.find((c) => c.id === newCohortId);
+  if (!cohort) throw new Error(`Cohort ${newCohortId} not found`);
+
+  const order = MOCK_ORDERS.find((o) => o.id === orderId);
+  if (!order) throw new Error(`Order ${orderId} not found`);
+
+  order.cohortId = cohort.id;
+  order.cohortStartDate = cohort.startDate;
+  order.cohortChangeUsed = true;
+
+  return { cohortId: cohort.id, cohortStartDate: cohort.startDate };
 }

@@ -21,6 +21,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeftIcon,
+  CalendarDaysIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
@@ -28,11 +29,16 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { Card } from '../../components/Card';
+import { Badge } from '../../components/Badge';
+import { Button } from '../../components/Button';
 import { AccessPanel } from '../../components/AccessPanel';
 import { ToolAccessList } from '../../components/ToolAccessList';
 import { ProductAccessCard } from '../../components/ProductAccessCard';
+import { ChangeCohortModal } from '../../components/ChangeCohortModal';
+import { SuccessToast } from '../../components/SuccessToast';
 import { getOrder } from '../../services/portalService';
 import { getAccessStatus } from './GetAccessPage';
+import { formatCohortDate, getCohortRelativeDays } from '../../utils/formatters';
 import type { Order, LmsEnrollmentStatus } from '../../types/order';
 
 // ─── Access upgrade logic (mirrors OrderDetailPage) ───────────────────────────
@@ -120,6 +126,60 @@ const StatusBanner: React.FC<StatusBannerProps> = ({ order }) => {
   );
 };
 
+// ─── Cohort Banner ────────────────────────────────────────────────────────────
+
+interface CohortBannerProps {
+  order: Order;
+  onChangeBatch: () => void;
+}
+
+/**
+ * Displays the learner's current batch date with an option to change it.
+ * Once the change has been used (cohortChangeUsed === true), the button
+ * is replaced by a read-only pill so the one-time limit is clear.
+ * Hidden entirely when cohortStartDate is not set on the order.
+ */
+const CohortBanner: React.FC<CohortBannerProps> = ({ order, onChangeBatch }) => {
+  if (!order.cohortStartDate) return null;
+
+  const relativeHint = getCohortRelativeDays(order.cohortStartDate);
+
+  return (
+    <Card className="p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <CalendarDaysIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-0.5">
+              Your Batch
+            </p>
+            <p className="text-sm font-semibold text-text-primary">
+              {formatCohortDate(order.cohortStartDate)}
+            </p>
+            {relativeHint && (
+              <p className="text-xs text-text-muted mt-0.5">{relativeHint}</p>
+            )}
+          </div>
+        </div>
+
+        {order.cohortChangeUsed ? (
+          <Badge className="bg-slate-100 text-slate-500 border border-slate-200 text-xs whitespace-nowrap self-center">
+            Batch Updated
+          </Badge>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={onChangeBatch}
+            className="text-xs px-3 py-2 whitespace-nowrap self-center"
+          >
+            Change Batch
+          </Button>
+        )}
+      </div>
+    </Card>
+  );
+};
+
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
 
 const Skeleton: React.FC = () => (
@@ -145,6 +205,8 @@ export const AccessDetailPage: React.FC = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showChangeCohort, setShowChangeCohort] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     if (!orderId) return;
@@ -205,6 +267,12 @@ export const AccessDetailPage: React.FC = () => {
             {/* Status summary banner — orients the learner at a glance */}
             <StatusBanner order={order} />
 
+            {/* Cohort (batch) date — with one-time change option */}
+            <CohortBanner
+              order={order}
+              onChangeBatch={() => setShowChangeCohort(true)}
+            />
+
             {/* A. Per-product access cards — shown when products are attached to the order */}
             {(order.purchasedProducts ?? []).length > 0 && (
               <Card className="p-5 sm:p-6">
@@ -255,6 +323,25 @@ export const AccessDetailPage: React.FC = () => {
                 <ToolAccessList toolAccesses={order.toolAccesses ?? []} />
               </Card>
             )}
+
+            <SuccessToast
+              show={showToast}
+              message="Batch updated successfully"
+              onDone={() => setShowToast(false)}
+            />
+
+            {/* Batch change modal — mounted here so it can access order state */}
+            <ChangeCohortModal
+              isOpen={showChangeCohort}
+              onClose={() => setShowChangeCohort(false)}
+              orderId={order.id}
+              currentCohortId={order.cohortId}
+              currentCohortStartDate={order.cohortStartDate}
+              onSuccess={(cohortStartDate) => {
+                handleOrderUpdated({ cohortStartDate, cohortChangeUsed: true });
+                setShowToast(true);
+              }}
+            />
           </>
         )}
 

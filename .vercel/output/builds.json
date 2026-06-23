@@ -5,9 +5,10 @@
     "/Users/saumyparihar/.nvm/versions/node/v24.14.0/bin/node",
     "/Users/saumyparihar/.nvm/versions/node/v24.14.0/bin/vercel",
     "build",
-    "--prod"
+    "--prod",
+    "--yes"
   ],
-  "cliVersion": "51.6.1",
+  "cliVersion": "54.14.2",
   "builds": [
     {
       "require": "@vercel/static-build",

@@ -13,11 +13,12 @@ import { GetAccessPage } from './pages/portal/GetAccessPage';
 import { AccessDetailPage } from './pages/portal/AccessDetailPage';
 import { UseCaseIndexPage } from './pages/dev/UseCaseIndexPage';
 import { useStore } from './store/useStore';
+import type { ProgramType } from './store/useStore';
 import { PaymentLinkFooter } from './components/PaymentLinkFooter';
 
 function App() {
   const location = useLocation();
-  const { userDetails, resetToStep1 } = useStore();
+  const { userDetails, resetToStep1, programType, setProgramType } = useStore();
   const email = userDetails?.email?.trim() ?? '';
   /** Details (`/`) is before the learner has finished step 1 — no header email until `/review`+. */
   const showHeaderEmail = email.length > 0 && location.pathname !== '/';
@@ -50,12 +51,35 @@ function App() {
             className="h-auto max-h-[20px] w-auto max-w-[90px] object-contain object-center select-none sm:max-h-[22px] sm:max-w-[95px] flex-shrink-0"
           />
 
+          {/* Program type switcher — always visible for prototype testing */}
+          <div className="flex items-center gap-1 ml-4 bg-slate-100 rounded-lg p-1 flex-shrink-0">
+            {(
+              [
+                { value: 'nsdc' as ProgramType, label: 'NSDC' },
+                { value: 'non-nsdc' as ProgramType, label: 'Non-NSDC' },
+              ] as const
+            ).map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => setProgramType(value)}
+                className={[
+                  'px-3 py-1 rounded-md text-xs font-medium transition-all',
+                  programType === value
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700',
+                ].join(' ')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {/* Portal tabs — centred in the remaining space, only on /portal/* */}
           {isPortalRoute ? (
             <nav className="flex-1 flex justify-center" aria-label="Portal sections">
               {[
-                { label: 'My Orders', to: '/portal/orders', Icon: ShoppingBagIcon },
                 { label: 'Get Access', to: '/portal/access', Icon: KeyIcon },
+                { label: 'My Orders', to: '/portal/orders', Icon: ShoppingBagIcon },
               ].map(({ label, to, Icon }) => (
                 <NavLink
                   key={to}
@@ -138,8 +162,8 @@ function App() {
 
           {/* Self-serve customer portal — two sections: My Orders + Get Access */}
           <Route path="/portal" element={<PortalLayout />}>
-            {/* Default: redirect /portal → /portal/orders */}
-            <Route index element={<Navigate to="orders" replace />} />
+            {/* Default: redirect /portal → /portal/access */}
+            <Route index element={<Navigate to="access" replace />} />
             {/* My Orders section — transaction / admin tasks */}
             <Route path="orders" element={<MyOrdersPage />} />
             <Route path="orders/:orderId" element={<OrderDetailPage />} />

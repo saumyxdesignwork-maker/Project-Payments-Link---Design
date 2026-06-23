@@ -3,6 +3,7 @@ import { PROGRAM_DATA } from '../data/paymentLink';
 import type { PostPaymentContext } from '../types/portal';
 
 export type PaymentMode = 'partial' | 'full';
+export type ProgramType = 'nsdc' | 'non-nsdc';
 
 export interface UserDetails {
   fullName: string;
@@ -27,6 +28,7 @@ interface AppState {
   selectedCohortId: string;
   selectedDurationId: string;
   paymentMode: PaymentMode;
+  programType: ProgramType;
 
   // User details
   userDetails: UserDetails;
@@ -49,6 +51,7 @@ interface AppState {
   setCohortId: (id: string) => void;
   setDurationId: (id: string) => void;
   setPaymentMode: (mode: PaymentMode) => void;
+  setProgramType: (type: ProgramType) => void;
   setUserDetails: (details: Partial<UserDetails>) => void;
   setStep1Skipped: (v: boolean) => void;
   toggleBump: (id: string) => void;
@@ -93,6 +96,7 @@ export const useStore = create<AppState>((set) => ({
   selectedCohortId: PROGRAM_DATA.defaultCohortId,
   selectedDurationId: defaultDurationId,
   paymentMode: 'full',
+  programType: 'nsdc',
 
   userDetails: { fullName: '', email: '', phone: '', countryCode: 'IN' },
   step1Skipped: false,
@@ -113,6 +117,7 @@ export const useStore = create<AppState>((set) => ({
   setCohortId: (id) => set({ selectedCohortId: id }),
   setDurationId: (id) => set({ selectedDurationId: id }),
   setPaymentMode: (mode) => set({ paymentMode: mode }),
+  setProgramType: (type) => set({ programType: type }),
   setUserDetails: (details) =>
     set((state) => ({ userDetails: { ...state.userDetails, ...details } })),
   setStep1Skipped: (v) => set({ step1Skipped: v }),

@@ -7,7 +7,6 @@ import { useStore } from '../store/useStore';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
-import { Accordion } from '../components/Accordion';
 import { formatCheckoutPrice, formatCohortDate, getCohortRelativeDays, formatDate } from '../utils/formatters';
 import {
   applyCheckoutDiscount,
@@ -250,7 +249,10 @@ export const ReviewPage: React.FC = () => {
     resetDuplicateCheck, resetToStep1,
     setCheckoutAddonsTotal,
     setCheckoutDiscountMultiplier,
+    programType,
   } = useStore();
+
+  const isNsdc = programType === 'nsdc';
 
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
@@ -284,11 +286,22 @@ export const ReviewPage: React.FC = () => {
   const amountPayableToday =
     paymentMode === 'partial' ? partialDueTodayDiscounted : displayFeeDiscounted;
 
+  /** 18% GST (inclusive) shown on non-NSDC Indian orders only. */
+  const GST_RATE = 0.18;
+  const applicableTax = !isNsdc && isIndia
+    ? Math.round(amountPayableToday * GST_RATE / (1 + GST_RATE))
+    : 0;
+
   const discountWindow = PROGRAM_DATA.discount_window;
   const discountSecs   = discountWindow ? discountSecondsLeft(discountWindow.expiresAt) : null;
 
   const isChecking      = duplicateStatus === 'checking';
   const isDuplicateFound = duplicateStatus === 'found';
+
+  // ── Reset GST when switching to NSDC mode (not applicable there) ───────────
+  useEffect(() => {
+    if (isNsdc && gstEnabled) setGstEnabled(false);
+  }, [isNsdc, gstEnabled, setGstEnabled]);
 
   // ── Duplicate check on mount — keyed by email ──────────────────────────────
   useEffect(() => {
@@ -378,13 +391,13 @@ export const ReviewPage: React.FC = () => {
             <div className="p-5">
               <div className="flex items-start gap-2 flex-wrap mb-1">
                 <h1 className="text-2xl font-semibold text-slate-900 leading-snug">{PROGRAM_DATA.title}</h1>
-                {PROGRAM_DATA.isNsdcAligned && (
+                {isNsdc && PROGRAM_DATA.isNsdcAligned && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-normal bg-yellow-100 text-yellow-800 border border-yellow-200 shrink-0 mt-1">
                     NSDC Training Partnership
                   </span>
                 )}
               </div>
-              {isIndia && (
+              {isNsdc && isIndia && (
                 <div className="flex flex-wrap gap-x-4 mt-1">
                   <span className="text-sm text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
                   <span className="text-sm text-slate-400">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
@@ -540,7 +553,7 @@ export const ReviewPage: React.FC = () => {
                         isSelected={selectedBumpIds.includes(bp.id)}
                         onToggle={() => toggleBump(bp.id)}
                         formatPrice={formatPrice}
-                        showIndianComplianceIds={isIndia}
+                        showIndianComplianceIds={isNsdc && isIndia}
                       />
                     ))}
                     {audioProducts.map((ap) => (
@@ -550,7 +563,7 @@ export const ReviewPage: React.FC = () => {
                         isSelected={selectedAudioIds.includes(ap.id)}
                         onToggle={() => toggleAudio(ap.id)}
                         formatPrice={formatPrice}
-                        showIndianComplianceIds={isIndia}
+                        showIndianComplianceIds={isNsdc && isIndia}
                       />
                     ))}
                   </div>
@@ -559,35 +572,17 @@ export const ReviewPage: React.FC = () => {
 
 
 
-              {/* ── GST Invoice ── */}
-              <Card className="px-6 py-4 bg-white border-slate-200">
-                <GstControl
-                  gstEnabled={gstEnabled} onToggle={setGstEnabled}
-                  companyName={gstDetails.companyName} gstin={gstDetails.gstin} billingAddress={gstDetails.billingAddress}
-                  onChange={(f, v) => setGstDetails({ [f]: v })}
-                />
-              </Card>
+              {/* ── GST Invoice — non-NSDC programs only ── */}
+              {!isNsdc && (
+                <Card className="px-6 py-4 bg-white border-slate-200">
+                  <GstControl
+                    gstEnabled={gstEnabled} onToggle={setGstEnabled}
+                    companyName={gstDetails.companyName} gstin={gstDetails.gstin} billingAddress={gstDetails.billingAddress}
+                    onChange={(f, v) => setGstDetails({ [f]: v })}
+                  />
+                </Card>
+              )}
 
-              {/* What's included */}
-              <div>
-                <h3 className="text-base font-medium text-slate-900 mb-3">What's Included</h3>
-                <Accordion items={[{
-                  id: 'features',
-                  title: 'View All Benefits',
-                  content: (
-                    <ul className="space-y-3">
-                      {PROGRAM_DATA.features.map((f, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0">
-                            <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 0 1 1.04-.208Z" clipRule="evenodd" />
-                          </svg>
-                          <span className="text-slate-700 text-sm">{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ),
-                }]} />
-              </div>
             </>
           )}
         </div>
@@ -646,8 +641,12 @@ export const ReviewPage: React.FC = () => {
                 )}
 
                 <div className="flex justify-between items-start gap-2 text-sm py-2 border-t border-slate-100 mt-1">
-                  <span className="text-slate-500">Applicable Taxes</span>
-                  <span className="text-slate-500 text-right">₹0</span>
+                  <span className="text-slate-500">
+                    Applicable Taxes{!isNsdc && isIndia ? ' (18% GST incl.)' : ''}
+                  </span>
+                  <span className="text-slate-500 text-right">
+                    {applicableTax > 0 ? formatPrice(applicableTax) : '₹0'}
+                  </span>
                 </div>
 
                 <div className="border-t border-slate-200 pt-4 mb-6">
