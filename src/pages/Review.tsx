@@ -60,11 +60,6 @@ async function checkDuplicateByEmail(email: string): Promise<string | null> {
   return null;
 }
 
-/** Remaining seconds until a discount window expires, null if expired. */
-function discountSecondsLeft(expiresAt: string): number | null {
-  const ms = new Date(expiresAt).getTime() - Date.now();
-  return ms > 0 ? Math.floor(ms / 1000) : null;
-}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -302,8 +297,6 @@ export const ReviewPage: React.FC = () => {
     ? Math.round(amountPayableToday * GST_RATE / (1 + GST_RATE))
     : 0;
 
-  const discountWindow = PROGRAM_DATA.discount_window;
-  const discountSecs   = discountWindow ? discountSecondsLeft(discountWindow.expiresAt) : null;
 
   const isChecking      = duplicateStatus === 'checking';
   const isDuplicateFound = duplicateStatus === 'found';
@@ -529,24 +522,6 @@ export const ReviewPage: React.FC = () => {
             />
           )}
 
-          {/* Discount window — separate action card */}
-          {!isChecking && !isDuplicateFound && paymentMode === 'partial' && discountWindow && discountSecs !== null && (
-            <Card className="p-5 border border-[rgb(85,170,136)] bg-primary-light">
-              <p className="text-base font-medium text-slate-900 mb-2">Limited-time offer</p>
-              <p className="text-slate-800 text-sm mb-3">Pay the remaining balance at a discounted rate.</p>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-xl font-medium text-primary">{formatPrice(discountWindow.discountedRemainingAmount)}</span>
-                <span className="text-sm line-through text-slate-400">{formatPrice(discountWindow.fullRemainingAmount)}</span>
-              </div>
-              <p className="text-sm text-slate-500 mb-4">
-                Discount valid for{' '}
-                <span className="font-medium text-slate-700">
-                  {Math.floor(discountSecs / 86400)}d {Math.floor((discountSecs % 86400) / 3600)}h {Math.floor((discountSecs % 3600) / 60)}m
-                </span>
-              </p>
-              <Button className="w-full font-medium">{discountWindow.ctaLabel}</Button>
-            </Card>
-          )}
 
           {!isChecking && !isDuplicateFound && (
             <>
