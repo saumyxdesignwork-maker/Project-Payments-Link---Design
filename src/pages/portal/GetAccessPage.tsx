@@ -3,17 +3,12 @@
  *
  * Route: /portal/access
  *
- * Landing page of the "Get Access" section. Lists all orders as individual
- * product access cards so the learner can instantly see their access state
- * and take action without navigating through payment or admin information.
- *
- * This section is intentionally separate from My Orders so:
- *   - Learners who only want to access their program don't need to navigate
- *     through payment / admin information.
- *   - Both sections can evolve independently.
+ * Fulfillment-first access dashboard. One card = one program the learner can
+ * act on. Financial and transaction details live in the My Orders section;
+ * this page is intentionally focused on access only.
  *
  * Data flow:
- *   mount → getOrders() → render access cards
+ *   mount → getOrders() → render fulfillment cards
  *
  * When you have a real backend:
  *   - Replace getOrders() with a fetch() using the user's session token.
@@ -25,78 +20,21 @@ import { Link } from 'react-router-dom';
 import {
   KeyIcon,
   ExclamationCircleIcon,
-  WrenchScrewdriverIcon,
   CalendarDaysIcon,
+  ArrowRightIcon,
+  ArrowTopRightOnSquareIcon,
+  CheckBadgeIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 
 import { getOrders } from '../../services/portalService';
 import { useStore } from '../../store/useStore';
 import { Card } from '../../components/Card';
-import { ProductAccessCard } from '../../components/ProductAccessCard';
 import { ChangeCohortModal } from '../../components/ChangeCohortModal';
 import { SuccessToast } from '../../components/SuccessToast';
 import { formatDate } from '../../utils/formatters';
+import { getAccessStatus } from '../../utils/accessStatus';
 import type { Order } from '../../types/order';
-
-// ─── Access status derivation ─────────────────────────────────────────────────
-
-/**
- * Derives a human-readable access status and visual type for an order.
- * Mirrors the logic in OrderCard so both sections show consistent statuses.
- */
-export function getAccessStatus(order: Order): {
-  label: string;
-  detail: string;
-  type: 'action' | 'info' | 'success';
-  actionKind?: 'nsdc' | 'email';
-} {
-  const { nsdcRequired, nsdcCompleted, lmsEnrollmentStatus, emailConfirmed } = order;
-
-  if (nsdcRequired) {
-    if (!nsdcCompleted && order.nsdcRetroactiveCollectionRequired) {
-      return {
-        label: 'NSDC required',
-        detail: 'Complete NSDC registration to stay aligned with certification rules.',
-        type: 'action',
-        actionKind: 'nsdc',
-      };
-    }
-    if (!nsdcCompleted) {
-      return {
-        label: 'Action needed',
-        detail: 'Complete NSDC form to unlock full LMS access.',
-        type: 'action',
-        actionKind: 'nsdc',
-      };
-    }
-    if (lmsEnrollmentStatus === 'real') {
-      return {
-        label: 'Access active',
-        detail: 'Full LMS access is live. Open your program below.',
-        type: 'success',
-      };
-    }
-    return {
-      label: 'Preview access',
-      detail: 'Temporary cohort access is active. Full access after NSDC + full payment.',
-      type: 'info',
-    };
-  }
-
-  if (!emailConfirmed) {
-    return {
-      label: 'Email required',
-      detail: 'Confirm your email address to activate access.',
-      type: 'action',
-      actionKind: 'email',
-    };
-  }
-  return {
-    label: 'Access active',
-    detail: 'Your access is ready. Open your program below.',
-    type: 'success',
-  };
-}
 
 // ─── Access status badge ──────────────────────────────────────────────────────
 
@@ -107,7 +45,7 @@ interface AccessStatusBadgeProps {
 
 const AccessStatusBadge: React.FC<AccessStatusBadgeProps> = ({ type, label }) => {
   const styles = {
-    action: 'bg-status-warning-bg text-status-warning-text border-status-warning-border',
+    action: 'bg-status-warning-bg/40 text-status-warning-text border-status-warning-border/60',
     info: 'bg-status-info-bg text-status-info-text border-status-info-border',
     success: 'bg-status-success-bg text-status-success-text border-status-success-border',
   };
@@ -119,7 +57,7 @@ const AccessStatusBadge: React.FC<AccessStatusBadgeProps> = ({ type, label }) =>
   );
 };
 
-// ─── Product access card ──────────────────────────────────────────────────────
+// ─── Fulfillment card ─────────────────────────────────────────────────────────
 
 interface AccessCardProps {
   order: Order;
@@ -129,126 +67,117 @@ interface AccessCardProps {
 const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
   const status = getAccessStatus(order);
 
-  const isDirectLms = status.type === 'success' && !!order.lmsLink;
-  const toolCount = (order.toolAccesses ?? []).length;
-  const products = order.purchasedProducts ?? [];
+  return (
+    <Card>
+      <div className="p-5 sm:p-6">
 
-  // ── Order-level summary header (always shown, optionally clickable) ──────────
-  const orderHeader = (
-    <div className="p-5 sm:p-6">
+        {/* Badge */}
+        <div className="mb-2">
+          <AccessStatusBadge type={status.type} label={status.label} />
+        </div>
 
-      {/* Program name + meta row */}
-      <div className="flex items-start gap-2.5 mb-3">
-        <div className="min-w-0 flex-1 flex flex-col gap-1.5">
-          {/* Title + badge on same row, space-between */}
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-base font-medium leading-none text-text-primary">
+        {/* Left column (name + batch) center-aligned with Get Access button */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-1 min-w-0">
+            <p className="text-base font-medium leading-snug text-text-primary">
               {order.programName}
             </p>
-            <AccessStatusBadge type={status.type} label={status.label} />
+            {order.cohortStartDate && (
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="inline-flex items-center gap-1 text-sm text-text-muted">
+                  <CalendarDaysIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                  Starts {formatDate(order.cohortStartDate)}
+                </span>
+                {order.cohortChangeUsed ? (
+                  <span className="relative group text-xs text-text-muted border border-border-subtle rounded-full px-2 py-0.5 cursor-default">
+                    Batch updated
+                    <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      You've already used your one-time batch change
+                    </span>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => onChangeBatch(order)}
+                    className="text-xs font-medium text-blue-600 hover:underline underline-offset-2"
+                  >
+                    Change batch
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Cohort date + Change Batch button */}
-          {order.cohortStartDate && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1 text-sm text-text-muted">
-                <CalendarDaysIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                Batch: {formatDate(order.cohortStartDate)}
-              </span>
-              {order.cohortChangeUsed ? (
-                <span className="text-xs text-text-muted border border-border-subtle rounded-full px-2 py-0.5">
-                  Batch Updated
-                </span>
-              ) : (
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onChangeBatch(order); }}
-                  className="text-xs font-medium text-blue-600 hover:underline underline-offset-2"
-                >
-                  Change Batch
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Status description */}
-      <p className="text-sm leading-relaxed text-text-muted">
-        {status.detail}
-      </p>
-
-      {/* Tool count chip — only shown when no per-product cards are present */}
-      {toolCount > 0 && products.length === 0 && (
-        <div className="pl-7 mt-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface-subtle px-2.5 py-1 text-xs font-medium text-text-secondary">
-            <WrenchScrewdriverIcon className="h-3.5 w-3.5" />
-            +{toolCount} tool{toolCount > 1 ? 's' : ''} included
-          </span>
-        </div>
-      )}
-    </div>
-  );
-
-  // ── Per-product access cards ──────────────────────────────────────────────────
-  // When an order has purchasedProducts, render each as its own ProductAccessCard
-  // so the learner sees a product-specific next step instead of a generic CTA.
-  const productSection = products.length > 0 ? (
-      <div className="px-5 sm:px-6 pb-5 sm:pb-6">
-      <div className="border-t border-border-subtle pt-4">
-        <p className="eyebrow-label mb-3">
-          Your products
-        </p>
-        <div className="space-y-3">
-          {products.map((product) => (
-            <ProductAccessCard
-              key={product.id}
-              productName={product.name}
-              productTag={product.productTag}
-              accessType={product.accessType}
-              ctaUrl={product.accessUrl}
-              nsdcSteps={product.nsdcSteps}
-              customCta={
-                product.accessType === 'custom_cta' && product.ctaLabel && product.ctaUrl
-                  ? { label: product.ctaLabel, url: product.ctaUrl, description: product.ctaDescription }
-                  : undefined
-              }
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  ) : null;
-
-  // When no per-product cards are present and the order has a direct LMS link,
-  // make the whole card clickable (original behaviour).
-  if (products.length === 0) {
-    if (isDirectLms) {
-      return (
-        <Card>
-          <a
-            href={order.lmsLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-            aria-label={`Open ${order.programName} in learner dashboard`}
+          <Link
+            to={`/portal/access/${order.id}`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
           >
-            {orderHeader}
-          </a>
-        </Card>
-      );
-    }
+            Get Access
+            <ArrowRightIcon className="h-3.5 w-3.5" />
+          </Link>
+        </div>
 
-    return (
-      <Card>
-        {orderHeader}
-      </Card>
-    );
-  }
+      </div>
+    </Card>
+  );
+};
+
+// ─── Completed program card ───────────────────────────────────────────────────
+
+interface CompletedProgramCardProps {
+  order: Order;
+}
+
+const CompletedProgramCard: React.FC<CompletedProgramCardProps> = ({ order }) => {
+  const isNearCompletion = order.completionStatus === 'near_completion';
 
   return (
     <Card>
-      {orderHeader}
-      {productSection}
+      <div className="p-5 sm:p-6">
+        {/* Badge */}
+        <div className="mb-1">
+          {isNearCompletion ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-status-info-border bg-status-info-bg px-2.5 py-0.5 text-xs font-normal text-status-info-text">
+              Almost done
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full border border-status-success-border bg-status-success-bg px-2.5 py-0.5 text-xs font-normal text-status-success-text">
+              <CheckBadgeIcon className="h-3.5 w-3.5" />
+              Completed
+            </span>
+          )}
+        </div>
+
+        {/* Program name + CTA */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-1 min-w-0">
+            <p className="text-base font-medium leading-snug text-text-primary">
+              {order.programName}
+            </p>
+            {order.completedAt && !isNearCompletion && (
+              <p className="text-sm text-text-muted">
+                Completed {formatDate(order.completedAt)}
+              </p>
+            )}
+            {isNearCompletion && (
+              <p className="text-sm text-text-muted">
+                Your certificate will be issued once you complete the program.
+              </p>
+            )}
+          </div>
+
+          {!isNearCompletion && order.certificateUrl && (
+            <a
+              href={order.certificateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-card px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-border-strong focus:ring-offset-2 flex-shrink-0"
+            >
+              <ArrowDownTrayIcon className="h-3.5 w-3.5" />
+              Download Certificate
+            </a>
+          )}
+        </div>
+      </div>
     </Card>
   );
 };
@@ -258,24 +187,15 @@ const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
 const AccessCardSkeleton: React.FC = () => (
   <div className="skeleton-card">
     <div className="p-5 sm:p-6">
-      <div className="flex items-start gap-2.5">
-        <div className="mt-0.5 h-5 w-5 flex-shrink-0 rounded-full skeleton-block" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-3/5 skeleton-block" />
-          <div className="flex gap-2">
-            <div className="h-3 bg-slate-100 rounded w-24" />
-            <div className="h-3 bg-slate-100 rounded-full w-20" />
-          </div>
-        </div>
+      {/* Name + badge row */}
+      <div className="flex items-center justify-between gap-3 mb-1">
+        <div className="h-4 w-2/5 skeleton-block" />
+        <div className="h-5 w-20 rounded-full skeleton-block" />
       </div>
-      <div className="pl-7 mt-3 space-y-1.5">
-        <div className="h-3 bg-slate-100 rounded w-full" />
-        <div className="h-3 bg-slate-100 rounded w-4/5" />
-      </div>
-    </div>
-    <div className="px-5 sm:px-6 pb-5 sm:pb-6">
-      <div className="border-t border-border-subtle pt-4">
-        <div className="h-10 bg-slate-100 rounded-lg w-full" />
+      {/* Batch + CTA row */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="h-3 w-36 bg-slate-100 rounded" />
+        <div className="h-9 w-28 bg-slate-100 rounded-lg" />
       </div>
     </div>
   </div>
@@ -329,24 +249,22 @@ export const GetAccessPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  /*
-   * Sort orders so "action needed" items appear first — learners are more
-   * likely to visit this tab when they need to do something (e.g. NSDC form).
-   */
-  const sortedOrders = [...orders].sort((a, b) => {
+  const activeOrders = orders.filter((o) => !o.completionStatus);
+  const completedOrders = orders.filter((o) => !!o.completionStatus);
+
+  // Sort active orders so action-required items appear first.
+  const sortedOrders = [...activeOrders].sort((a, b) => {
     const priority = { action: 0, info: 1, success: 2 };
     return priority[getAccessStatus(a).type] - priority[getAccessStatus(b).type];
   });
+
 
   return (
     <div className="page-shell py-8 px-4">
       <div className="max-w-2xl mx-auto">
 
         {/* ── Page header ── */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-medium text-text-primary">Get Access</h1>
-
-        </div>
+        <h1 className="text-2xl font-medium text-text-primary mb-6">Get Access</h1>
 
         {/* ── Error state ── */}
         {error && (
@@ -367,15 +285,29 @@ export const GetAccessPage: React.FC = () => {
         {/* ── Empty state ── */}
         {!loading && !error && orders.length === 0 && <EmptyState />}
 
-        {/* ── Access card list ── */}
+        {/* ── Active fulfillment cards ── */}
         {!loading && !error && sortedOrders.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-[18px]">
             {sortedOrders.map((order) => (
               <AccessCard
                 key={order.id}
                 order={order}
                 onChangeBatch={(o) => setChangingOrder(o)}
               />
+            ))}
+          </div>
+        )}
+
+        {/* ── Completed / near-completion programs ── */}
+        {!loading && !error && completedOrders.length > 0 && (
+          <div className="space-y-2 mt-5">
+            {sortedOrders.length > 0 && (
+              <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+                Past programs
+              </p>
+            )}
+            {completedOrders.map((order) => (
+              <CompletedProgramCard key={order.id} order={order} />
             ))}
           </div>
         )}
@@ -390,7 +322,7 @@ export const GetAccessPage: React.FC = () => {
 
       </div>
 
-      {/* Batch change modal — mounted at page level so it sits above all cards */}
+      {/* Modals and toasts — mounted at page level so they sit above all cards */}
       <SuccessToast
         show={showToast}
         message="Batch updated successfully"

@@ -16,7 +16,7 @@
  * `submitEmailConfirmation` in portalService.ts with real fetch() calls.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowTopRightOnSquareIcon,
   ArrowRightIcon,
@@ -195,7 +195,16 @@ const NsdcReadOnlySummary: React.FC<NsdcReadOnlySummaryProps> = ({ order }) => {
   );
 };
 
-// ─── Email Confirmation sub-panel ────────────────────────────────────────────────
+// ─── Email Confirmation sub-panel (OTP flow) ─────────────────────────────────────
+
+/** Masks an email for display, e.g. "saumy@example.com" → "s***y@example.com". */
+function maskEmail(raw: string): string {
+  const [local, domain] = raw.split('@');
+  if (!domain || local.length <= 2) return raw;
+  return `${local[0]}***${local[local.length - 1]}@${domain}`;
+}
+
+const DEMO_VALID_OTP = '123456';
 
 interface EmailConfirmPanelProps {
   orderId: string;
@@ -208,49 +217,145 @@ const EmailConfirmPanel: React.FC<EmailConfirmPanelProps> = ({
   prefillEmail = '',
   onSuccess,
 }) => {
-  const [email, setEmail] = useState(prefillEmail);
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpResentMessage, setOtpResentMessage] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [apiError, setApiError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const t = setTimeout(() => setResendCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCountdown]);
+
+  const sendOtpMock = async (isResend: boolean) => {
+    setIsSendingOtp(true);
+    if (!isResend) setOtp('');
+    setOtpError('');
+    await new Promise((r) => setTimeout(r, 800));
+    setIsSendingOtp(false);
+    setResendCountdown(10);
+    if (isResend) {
+      setOtpResentMessage(true);
+      setTimeout(() => setOtpResentMessage(false), 4000);
+    }
+  };
+
+  const handleSendCode = () => {
+    void (async () => {
+      await sendOtpMock(false);
+      setCodeSent(true);
+    })();
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Please enter a valid email address.');
+    const code = otp.replace(/\D/g, '').trim();
+    if (code.length !== 6) {
+      setOtpError('Enter the 6-digit code from your email.');
       return;
     }
-    setError('');
-    setSubmitting(true);
+    if (code !== DEMO_VALID_OTP) {
+      setOtpError('That code is incorrect or expired. Try again or resend a new code.');
+      return;
+    }
+    setOtpError('');
+    setApiError('');
     try {
-      // Real version: POST /api/portal/orders/:orderId/email-confirmation
       await submitEmailConfirmation(orderId);
       onSuccess();
     } catch {
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setSubmitting(false);
+      setApiError('Something went wrong. Please try again.');
     }
   };
 
   return (
-    <div>
-      <h3 className="mb-1 text-base font-medium text-text-primary">Confirm Your Email</h3>
-      <p className="mb-4 text-sm text-text-muted">
-        We need to confirm your email to activate LMS access and send you login details.
-      </p>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Email Address"
-          type="email"
-          value={email}
-          onChange={(e) => { setEmail(e.target.value); if (error) setError(''); }}
-          placeholder="you@example.com"
-          error={error}
-        />
-        <Button type="submit" fullWidth disabled={submitting}>
-          {submitting ? 'Confirming…' : 'Confirm Email'}
-          {!submitting && <ArrowRightIcon className="h-4 w-4 ml-2" />}
-        </Button>
-      </form>
+    <div className="space-y-5">
+      <div className="flex flex-col gap-2">
+        <h3 className="text-base font-medium text-text-primary leading-snug">Verify your email</h3>
+        <p className="text-sm text-text-muted leading-[150%]">
+          {codeSent
+            ? `We sent a 6-digit code to ${maskEmail(prefillEmail)}. Enter it below to confirm your email.`
+            : "We'll send a one-time code to confirm this is you before activating your access."}
+        </p>
+      </div>
+
+      {!codeSent ? (
+        <>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 select-all">
+            {prefillEmail}
+          </div>
+          {isSendingOtp ? (
+            <div className="flex items-center gap-3 text-sm text-text-muted py-1">
+              <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin flex-shrink-0" />
+              Sending verification code…
+            </div>
+          ) : (
+            <Button fullWidth className="font-medium" onClick={handleSendCode}>
+              Send verification code
+              <ArrowRightIcon className="h-4 w-4 ml-2" />
+            </Button>
+          )}
+        </>
+      ) : (
+        <form onSubmit={handleOtpSubmit} className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="block text-sm font-normal text-text-secondary leading-snug">
+                Registered email
+              </label>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 select-all">
+                {prefillEmail}
+              </div>
+            </div>
+            <Input
+              label="One-time code"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={otp}
+              onChange={(e) => {
+                const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setOtp(v);
+                if (otpError) setOtpError('');
+              }}
+              placeholder="000000"
+              maxLength={6}
+              error={otpError}
+            />
+          </div>
+
+          <div className="rounded-lg border border-blue-100 bg-blue-50/80 px-3 py-2 text-xs text-slate-600">
+            <span className="font-medium text-slate-700">Prototype:</span> use code{' '}
+            <code className="rounded bg-white px-1.5 py-0.5 font-mono text-slate-800">{DEMO_VALID_OTP}</code>
+          </div>
+
+          {otpResentMessage && (
+            <p className="text-sm text-green-700">A new code was sent. Check your inbox.</p>
+          )}
+          {apiError && <p className="text-sm text-status-error-text">{apiError}</p>}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              className="font-medium"
+              disabled={isSendingOtp || resendCountdown > 0}
+              onClick={() => void sendOtpMock(true)}
+            >
+              {isSendingOtp ? 'Sending…' : resendCountdown > 0 ? `Resend in ${resendCountdown}s` : 'Resend code'}
+            </Button>
+            <Button type="submit" fullWidth className="font-medium" disabled={isSendingOtp}>
+              Verify &amp; Continue
+              <ArrowRightIcon className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </form>
+      )}
     </div>
   );
 };
@@ -259,77 +364,20 @@ const EmailConfirmPanel: React.FC<EmailConfirmPanelProps> = ({
 
 interface AccessLinksPanelProps {
   order: Pick<Order, 'lmsEnrollmentStatus' | 'lmsLink' | 'couponLink' | 'emilyLink' | 'extraLinks' | 'nsdcRequired'>;
+  // lmsEnrollmentStatus and nsdcRequired are still passed through for future use
 }
 
 const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
-  const { lmsEnrollmentStatus, lmsLink, couponLink, emilyLink, extraLinks, nsdcRequired } = order;
+  const { couponLink, emilyLink, extraLinks } = order;
 
-  const isFullAccess = lmsEnrollmentStatus === 'real';
-  const isPreviewAccess = lmsEnrollmentStatus === 'dummy';
-
-  const hasAnyLink = lmsLink || couponLink || emilyLink || (extraLinks && extraLinks.length > 0);
+  const hasAnyLink = couponLink || emilyLink || (extraLinks && extraLinks.length > 0);
 
   return (
     <div className="space-y-4">
-      {/* Access tier badge + status */}
-      {(isFullAccess || isPreviewAccess) && (
-        <div
-          className={[
-            'status-banner space-y-1',
-            isFullAccess
-              ? 'status-banner-success'
-              : 'status-banner-warning',
-          ].join(' ')}
-        >
-          <div className="flex items-center gap-2">
-            <span
-              className={[
-                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold',
-                isFullAccess
-                  ? 'border-status-success-border bg-status-success-bg text-status-success-text'
-                  : 'border-status-warning-border bg-status-warning-bg text-status-warning-text',
-              ].join(' ')}
-            >
-              <span
-                className={[
-                  'h-1.5 w-1.5 rounded-full',
-                  isFullAccess ? 'bg-status-success-solid' : 'bg-status-warning-solid',
-                ].join(' ')}
-              />
-              {isFullAccess ? 'Full Access' : 'Preview Access'}
-            </span>
-          </div>
-          <p
-            className={[
-              'text-sm leading-normal',
-              isFullAccess ? 'text-status-success-text' : 'text-status-warning-text',
-            ].join(' ')}
-          >
-            {isFullAccess
-              ? nsdcRequired
-                ? 'Your NSDC registration is complete and full LMS access is active.'
-                : 'Your course access is fully active.'
-              : 'You have temporary cohort access. Full access activates once all payments are complete and your cohort is close to starting.'}
-          </p>
-        </div>
-      )}
-
-      {/* Links */}
+      {/* Links — lmsLink is surfaced as "Open program" at the top of the page */}
       {hasAnyLink ? (
         <div className="space-y-2">
           <p className="text-sm font-medium text-text-secondary">Your access links</p>
-
-          {lmsLink && (
-            <a
-              href={lmsLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="surface-link surface-link-primary"
-            >
-              <span>Go to Learner's Dashboard</span>
-              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-            </a>
-          )}
 
           {couponLink && (
             <a
@@ -368,12 +416,7 @@ const AccessLinksPanel: React.FC<AccessLinksPanelProps> = ({ order }) => {
             </a>
           ))}
         </div>
-      ) : (
-        <p className="text-sm text-text-muted">
-          Access links will appear here once your enrollment is processed. Contact support
-          if you believe this is a mistake.
-        </p>
-      )}
+      ) : null}
     </div>
   );
 };

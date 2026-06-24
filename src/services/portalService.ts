@@ -235,6 +235,9 @@ const MOCK_ORDERS: Order[] = [
     lmsLink: PROGRAM_DATA.redirect_url,
     customerEmail: 'learner@example.com',
     customerName: 'Demo Learner',
+    cohortStartDate: '2026-08-15',
+    cohortId: 'c6',
+    cohortChangeUsed: false,
     purchasedProducts: [
       {
         id: 'prod-leg-main',
@@ -281,6 +284,27 @@ const MOCK_ORDERS: Order[] = [
         accessType: 'email_24h',
       },
     ],
+  },
+  {
+    id: 'ORD-DONE',
+    userId: 'cust-mock-001',
+    programName: 'Digital Marketing Foundations',
+    createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
+    totalAmount: 12_000,
+    currency: 'INR',
+    countryCode: 'IN',
+    paymentStatus: 'paid',
+    pendingAmount: 0,
+    nsdcRequired: true,
+    nsdcCompleted: true,
+    lmsEnrollmentStatus: 'real',
+    emailConfirmed: true,
+    lmsLink: 'https://lms.growthschool.io/digital-marketing',
+    customerEmail: 'learner@example.com',
+    customerName: 'Demo Learner',
+    completionStatus: 'completed',
+    certificateUrl: 'https://certificates.growthschool.io/DMF-2024-DEMO.pdf',
+    completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 

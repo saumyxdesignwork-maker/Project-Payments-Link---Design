@@ -87,7 +87,7 @@
   }
 
   .status-banner-warning {
-    @apply border-status-warning-border bg-status-warning-bg text-status-warning-text;
+    @apply border-status-warning-border/50 bg-status-warning-bg/30 text-status-warning-text;
   }
 
   .status-banner-info {

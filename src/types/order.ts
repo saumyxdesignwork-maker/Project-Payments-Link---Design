@@ -235,6 +235,28 @@ export interface Order {
    * Backend: set on PATCH /api/portal/orders/:id/cohort; never resets.
    */
   cohortChangeUsed?: boolean;
+
+  /**
+   * Learner's progress state for this program.
+   *   completed      — program finished; certificate available (if certificateUrl is set)
+   *   near_completion — close to finishing; certificate not yet issued
+   * Omit for active / in-progress programs.
+   * Backend: derive from LMS completion events or a dedicated learner_progress table.
+   */
+  completionStatus?: 'completed' | 'near_completion';
+
+  /**
+   * Direct download / view URL for the completion certificate.
+   * Present only when completionStatus === 'completed' and the certificate has been generated.
+   * Backend: populated after LMS triggers a certificate-issued webhook.
+   */
+  certificateUrl?: string;
+
+  /**
+   * ISO date (YYYY-MM-DD) when the learner completed the program.
+   * Shown on the completed-program card for context.
+   */
+  completedAt?: string;
 }
 
 /**

@@ -291,11 +291,10 @@ export const ChangeCohortModal: React.FC<ChangeCohortModalProps> = ({
           {/* One-time-change warning — sits just above the CTA buttons */}
           {!hasNoCohorts && (
             <div className="px-5 pb-3">
-              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
-                <ExclamationTriangleIcon className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex items-center gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+                <ExclamationTriangleIcon className="h-5 w-5 text-amber-600 flex-shrink-0" />
                 <p className="text-sm text-amber-800 leading-snug">
-                  <span className="font-semibold">One change only.</span> You can move to a different
-                  batch once. This action cannot be undone.
+                  This is a one-time action and cannot be undone.
                 </p>
               </div>
             </div>

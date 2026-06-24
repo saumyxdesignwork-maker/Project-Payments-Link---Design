@@ -21,6 +21,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeftIcon,
+  ArrowTopRightOnSquareIcon,
   CalendarDaysIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -33,11 +34,10 @@ import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { AccessPanel } from '../../components/AccessPanel';
 import { ToolAccessList } from '../../components/ToolAccessList';
-import { ProductAccessCard } from '../../components/ProductAccessCard';
 import { ChangeCohortModal } from '../../components/ChangeCohortModal';
 import { SuccessToast } from '../../components/SuccessToast';
 import { getOrder } from '../../services/portalService';
-import { getAccessStatus } from './GetAccessPage';
+import { getAccessStatus } from '../../utils/accessStatus';
 import { formatCohortDate, getCohortRelativeDays } from '../../utils/formatters';
 import type { Order, LmsEnrollmentStatus } from '../../types/order';
 
@@ -116,7 +116,7 @@ const StatusBanner: React.FC<StatusBannerProps> = ({ order }) => {
       <Icon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${icon}`} />
       <div className="min-w-0">
         <p className={`text-sm font-medium leading-snug ${title}`}>
-          Current status: {status.label}
+          {status.label}
         </p>
         <p className={`text-sm mt-0.5 leading-normal ${detail}`}>
           {status.detail}
@@ -207,6 +207,7 @@ export const AccessDetailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [showChangeCohort, setShowChangeCohort] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [nsdcGateError, setNsdcGateError] = useState(false);
 
   useEffect(() => {
     if (!orderId) return;
@@ -254,74 +255,128 @@ export const AccessDetailPage: React.FC = () => {
         {/* ── Content ── */}
         {!loading && !error && order && (
           <>
-            {/* Program name header */}
-            <div>
-              <h1 className="text-xl font-medium leading-snug text-text-primary">
-                {order.programName}
-              </h1>
-              <p className="mt-1 text-sm text-text-muted">
-                Complete any required steps below to activate your access.
-              </p>
+            {/* 1. Program name header + Open program CTA */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="text-xl font-medium leading-snug text-text-primary mb-1">
+                  {order.programName}
+                </h1>
+                {order.cohortStartDate && (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="inline-flex items-center gap-1 text-sm text-text-muted">
+                      <CalendarDaysIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                      Starts {formatCohortDate(order.cohortStartDate)}
+                    </span>
+                    {order.cohortChangeUsed ? (
+                      <span className="relative group text-xs text-text-muted border border-border-subtle rounded-full px-2 py-0.5 cursor-default">
+                        Batch updated
+                        <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded-md bg-slate-800 px-2.5 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                          You've already used your one-time batch change
+                        </span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setShowChangeCohort(true)}
+                        className="text-xs font-medium text-blue-600 hover:underline underline-offset-2"
+                      >
+                        Change batch
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              {order.lmsLink && (() => {
+                const nsdcBlocked = order.nsdcRequired && !order.nsdcCompleted;
+                const emailBlocked = !order.nsdcRequired && !order.emailConfirmed;
+                const isBlocked = nsdcBlocked || emailBlocked;
+                return (
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    {isBlocked ? (
+                      <button
+                        onClick={() => {
+                          setNsdcGateError(true);
+                          document.getElementById('get-access')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                      >
+                        Open program
+                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                      </button>
+                    ) : (
+                      <a
+                        href={order.lmsLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                      >
+                        Open program
+                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
-            {/* Status summary banner — orients the learner at a glance */}
-            <StatusBanner order={order} />
-
-            {/* Cohort (batch) date — with one-time change option */}
-            <CohortBanner
-              order={order}
-              onChangeBatch={() => setShowChangeCohort(true)}
-            />
-
-            {/* A. Per-product access cards — shown when products are attached to the order */}
-            {(order.purchasedProducts ?? []).length > 0 && (
-              <Card className="p-5 sm:p-6">
-                <h2 className="mb-4 text-base font-medium text-text-primary">Your Products</h2>
-                <div className="space-y-3">
-                  {(order.purchasedProducts ?? []).map((product) => (
-                    <ProductAccessCard
-                      key={product.id}
-                      productName={product.name}
-                      productTag={product.productTag}
-                      accessType={product.accessType}
-                      ctaUrl={product.accessUrl}
-                      nsdcSteps={product.nsdcSteps}
-                      customCta={
-                        product.accessType === 'custom_cta' && product.ctaLabel && product.ctaUrl
-                          ? { label: product.ctaLabel, url: product.ctaUrl, description: product.ctaDescription }
-                          : undefined
-                      }
-                    />
-                  ))}
-                </div>
-              </Card>
+            {/* 2. Cohort / batch card — only shown when the change hasn't been used yet */}
+            {!order.cohortChangeUsed && (
+              <CohortBanner
+                order={order}
+                onChangeBatch={() => setShowChangeCohort(true)}
+              />
             )}
 
-            {/* B. Access panel — NSDC form / email confirm / access links */}
-            <Card id="get-access" className="p-5 sm:p-6 scroll-mt-6">
-              <h2 className="mb-4 text-base font-medium text-text-primary">
-                {order.nsdcRequired && !order.nsdcCompleted
-                  ? 'Complete NSDC Registration'
-                  : 'Access Details'}
-              </h2>
-              {/*
-               * AccessPanel handles the full decision tree:
-               *   Indian + NSDC pending    → NSDC form
-               *   Indian + NSDC complete   → read-only profile + access links
-               *   Non-Indian + no email    → email confirmation form
-               *   Non-Indian + email done  → access links
-               */}
-              <AccessPanel
-                order={{ ...order, lmsEnrollmentStatus: deriveEffectiveAccess(order) }}
-                onOrderUpdated={handleOrderUpdated}
-              />
-            </Card>
+            {/* 3. Status banner — shown when NSDC is pending for an NSDC program */}
+            <StatusBanner order={order} />
 
-            {/* C. Partner tools bundled with this order */}
+            {/* 4. NSDC form — only shown when registration is still pending */}
+            {(order.nsdcRequired && !order.nsdcCompleted) || (!order.nsdcRequired && !order.emailConfirmed) ? (
+              <div className="flex flex-col gap-3">
+                <div>
+                  <h2 className="text-base font-medium text-text-primary">
+                    {order.nsdcRequired ? 'Complete NSDC registration' : 'Confirm your email'}
+                  </h2>
+                  {nsdcGateError && (
+                    <p className="mt-1 text-xs text-status-error-text">
+                      {order.nsdcRequired
+                        ? 'Complete NSDC registration to access your program.'
+                        : 'Confirm your email to access your program.'}
+                    </p>
+                  )}
+                </div>
+                <Card id="get-access" className="p-5 sm:p-6 scroll-mt-6">
+                  <AccessPanel
+                    order={{ ...order, lmsEnrollmentStatus: deriveEffectiveAccess(order) }}
+                    onOrderUpdated={(updates) => {
+                      handleOrderUpdated(updates);
+                      setNsdcGateError(false);
+                    }}
+                  />
+                </Card>
+              </div>
+            ) : null}
+
+            {/* Tools — shown before the completed NSDC summary */}
             {(order.toolAccesses ?? []).length > 0 && (
               <Card className="p-5 sm:p-6">
                 <ToolAccessList toolAccesses={order.toolAccesses ?? []} />
               </Card>
+            )}
+
+            {/* Access details — pushed to bottom once NSDC / email is complete */}
+            {!(order.nsdcRequired && !order.nsdcCompleted) && !(!order.nsdcRequired && !order.emailConfirmed) && (
+              <div className="flex flex-col gap-3">
+                <h2 className="text-base font-medium text-text-primary">Your NSDC details</h2>
+                <Card id="get-access" className="p-5 sm:p-6 scroll-mt-6">
+                  <AccessPanel
+                    order={{ ...order, lmsEnrollmentStatus: deriveEffectiveAccess(order) }}
+                    onOrderUpdated={(updates) => {
+                      handleOrderUpdated(updates);
+                      setNsdcGateError(false);
+                    }}
+                  />
+                </Card>
+              </div>
             )}
 
             <SuccessToast
