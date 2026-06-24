@@ -266,7 +266,7 @@ export const PartialPaymentStatus: React.FC<PartialPaymentStatusProps> = ({
   onPayFullRemaining,
   onPayNextInstallment,
   payments = [],
-  bookingToolAccesses = [],
+  bookingToolAccesses: _bookingToolAccesses = [],
   flushTopWithCardShell = false,
   invoiceLabel,
 }) => {
