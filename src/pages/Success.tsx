@@ -1,6 +1,5 @@
 import React from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { Card } from '../components/Card';
 import { ProductAccessCard } from '../components/ProductAccessCard';
 import { PartialPaymentStatus } from '../components/PartialPaymentStatus';
 import { useStore } from '../store/useStore';
@@ -149,7 +148,7 @@ export const SuccessPage: React.FC = () => {
         )}
 
         {/* ── What happens next + email note ───────────────────────── */}
-        <Card className="p-5 sm:p-6">
+        <div>
           <h2 className="mb-3 text-sm font-normal text-text-muted">What happens next?</h2>
           <div className="space-y-3">
 
@@ -159,9 +158,8 @@ export const SuccessPage: React.FC = () => {
                 productTag="Main Program"
                 accessType="non_nsdc_completion"
                 nonNsdcCtaUrls={{
-                  whatsappUrl: PROGRAM_DATA.whatsapp_group_url ?? '#',
                   dashboardUrl: PROGRAM_DATA.redirect_url ?? '#',
-                  ordersPath: '/portal/orders',
+                  ordersPath: '/portal/access',
                 }}
               />
             ) : PROGRAM_DATA.isNsdcAligned && isIndianCustomer ? (
@@ -171,7 +169,6 @@ export const SuccessPage: React.FC = () => {
                 accessType="nsdc_onboarding"
                 stepLayout="stacked"
                 nsdcSteps={{
-                  whatsappUrl: PROGRAM_DATA.whatsapp_group_url ?? '#',
                   nsdcEnrollPath: '/portal/enroll',
                 }}
               />
@@ -214,7 +211,7 @@ export const SuccessPage: React.FC = () => {
             A confirmation has been sent to{' '}
             <span className="font-normal text-text-secondary">{userDetails.email || 'your email'}</span>.
           </p>
-        </Card>
+        </div>
 
       </div>
     </div>

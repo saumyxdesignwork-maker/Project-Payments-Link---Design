@@ -4,9 +4,9 @@
  * This page is the entry point after every payment (full or partial).
  * It walks the user through four steps:
  *
- *   Step 1 — Order Summary + Email Confirmation
- *   Step 2 — NSDC Data Collection  (Indian customers only, skipped if already on file)
- *   Step 3 — Course Enrollment     (auto-triggered, shows a spinner)
+ *   Step 1 — Email verification via OTP  (read-only email, no editing allowed)
+ *   Step 2 — NSDC Data Collection       (Indian customers only, skipped if already on file)
+ *   Step 3 — Course Enrollment          (auto-triggered, shows a spinner)
  *   Step 4 — Final Success View
  *
  * All API calls go through src/services/portalService.ts so they are easy
@@ -20,7 +20,7 @@ import {
   ArrowRightIcon,
   AcademicCapIcon,
 } from '@heroicons/react/24/solid';
-import { ExclamationCircleIcon, EnvelopeOpenIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 import nsdcLogo from '../assets/nsdc-logo.svg';
 
@@ -52,7 +52,7 @@ import type { PostPaymentContext, NsdcFormData, CoursePurchase } from '../types/
 type PortalStep = 1 | 2 | 3 | 4;
 
 const STEP_LABELS: Record<PortalStep, string> = {
-  1: 'Confirm Email',
+  1: 'Verify Email',
   2: 'NSDC Details',
   3: 'Enrollment',
   4: 'Done',
@@ -111,101 +111,57 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, showNsdc }) 
   );
 };
 
-// ─── Helpers ────────────────────────────────────────────────────────────────────
 
-/**
- * Masks an email for display, e.g. "saumy@growthschool.io" → "s***y@growthschool.io".
- * Keeps the first character, replaces the middle with ***, keeps the last char + domain.
- */
+// ─── Step 1: Email verification via OTP ──────────────────────────────────────────
+
+/** Masks an email for display, e.g. "saumy@example.com" → "s***y@example.com". */
 function maskEmail(raw: string): string {
   const [local, domain] = raw.split('@');
   if (!domain || local.length <= 2) return raw;
   return `${local[0]}***${local[local.length - 1]}@${domain}`;
 }
 
-/** Case-insensitive email equality check */
-function emailsMatch(a: string, b: string): boolean {
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
-}
-
-/** Demo inbox — same address at checkout unlocks the magic-link confirmation path. */
-const MAGIC_LINK_DEMO_EMAIL = 'sidharth@growthschool.io';
-
-/** Prototype OTP accepted after “send” — replace with API verification in production. */
+/** Prototype OTP — replace with a real API call in production. */
 const DEMO_VALID_OTP = '123456';
-
-// ─── Step 1: Email confirmation only (payment breakdown lives on Success / email receipt) ──
 
 interface Step1Props {
   ctx: PostPaymentContext;
   onConfirm: (email: string) => void;
 }
 
-type Step1Phase = 'email' | 'magic_link' | 'otp';
-
 const Step1OrderSummary: React.FC<Step1Props> = ({ ctx, onConfirm }) => {
-  const [email, setEmail] = useState(ctx.customerEmail);
-  const [error, setError] = useState('');
-  const [phase, setPhase] = useState<Step1Phase>('email');
+  const email = ctx.customerEmail;
+  const [codeSent, setCodeSent] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState('');
   const [otpResentMessage, setOtpResentMessage] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
 
-  // True while the user has typed something that differs from their registration email.
-  // We show a live warning as they type and block submission if they try to proceed.
-  const isDifferentEmail =
-    email.trim() !== '' && !emailsMatch(email, ctx.customerEmail);
-
-  const resetToEmailStep = () => {
-    setPhase('email');
-    setOtp('');
-    setOtpError('');
-    setOtpResentMessage(false);
-    setIsSendingOtp(false);
-  };
+  // Tick the countdown down every second until it reaches 0
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const t = setTimeout(() => setResendCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCountdown]);
 
   const sendOtpMock = async (isResend: boolean) => {
     setIsSendingOtp(true);
-    setOtpError('');
     if (!isResend) setOtp('');
+    setOtpError('');
     await new Promise((r) => setTimeout(r, 800));
     setIsSendingOtp(false);
+    setResendCountdown(10);
     if (isResend) {
       setOtpResentMessage(true);
       setTimeout(() => setOtpResentMessage(false), 4000);
     }
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSendingOtp) return;
-
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-
-    // Block if the email doesn't match the one used at registration.
-    if (isDifferentEmail) {
-      setError(
-        `This email doesn't match your registration email (${maskEmail(ctx.customerEmail)}). ` +
-        `Please use the same email, or contact support to update it.`,
-      );
-      return;
-    }
-
-    setError('');
-    const trimmed = email.trim();
-
-    if (emailsMatch(trimmed, MAGIC_LINK_DEMO_EMAIL)) {
-      setPhase('magic_link');
-      return;
-    }
-
+  const handleSendCode = () => {
     void (async () => {
       await sendOtpMock(false);
-      setPhase('otp');
+      setCodeSent(true);
     })();
   };
 
@@ -221,142 +177,48 @@ const Step1OrderSummary: React.FC<Step1Props> = ({ ctx, onConfirm }) => {
       return;
     }
     setOtpError('');
-    onConfirm(email.trim());
-  };
-
-  const handleMagicLinkConfirmed = () => {
-    onConfirm(email.trim());
+    onConfirm(email);
   };
 
   return (
-    <div>
-      {phase === 'email' && (
-        <>
-          <div className="flex flex-col gap-1.5 mb-6">
-            <h2 className="text-xl font-medium text-slate-900 leading-snug">Confirm your email</h2>
-            <p className="text-sm text-slate-500 leading-[150%]">
-              Payment is complete. Use the same email you used at checkout so we can link your learner account.
-            </p>
-          </div>
+    <div className="space-y-5">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-xl font-medium text-slate-900 leading-snug">Verify your email</h2>
+        <p className="text-sm text-slate-500 leading-[150%]">
+          {codeSent
+            ? `We sent a 6-digit code to ${maskEmail(email)}. Enter it below to confirm your email.`
+            : "We'll send a one-time code to confirm this is you before activating your access."}
+        </p>
+      </div>
 
+      {!codeSent ? (
+        <>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 select-all">
+            {email}
+          </div>
           {isSendingOtp ? (
-            <div className="py-10 text-center space-y-3">
-              <div className="flex justify-center">
-                <div className="h-9 w-9 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-              </div>
-              <p className="text-sm text-slate-600">
-                Sending a verification code to{' '}
-                <span className="font-medium text-slate-800">{maskEmail(email.trim())}</span>…
-              </p>
+            <div className="flex items-center gap-3 text-sm text-slate-500 py-1">
+              <div className="h-5 w-5 rounded-full border-2 border-primary border-t-transparent animate-spin flex-shrink-0" />
+              Sending verification code…
             </div>
           ) : (
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
-              <div>
-                <Input
-                  label="Email Address"
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) setError('');
-                  }}
-                  placeholder="you@example.com"
-                  error={error}
-                />
-
-                {isDifferentEmail && !error && (
-                  <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-                    <ExclamationCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p>
-                        This doesn't match your registration email{' '}
-                        <span className="font-medium">{maskEmail(ctx.customerEmail)}</span>.
-                        Your LMS account is linked to that email.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => { setEmail(ctx.customerEmail); setError(''); }}
-                        className="mt-1 text-sm font-normal text-amber-900 underline underline-offset-2 hover:text-amber-700"
-                      >
-                        Use my registered email instead
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Button type="submit" fullWidth className="font-medium">
-                Confirm & Continue
-                <ArrowRightIcon className="h-4 w-4 ml-2" />
-              </Button>
-            </form>
+            <Button fullWidth className="font-medium" onClick={handleSendCode}>
+              Send verification code
+              <ArrowRightIcon className="h-4 w-4 ml-2" />
+            </Button>
           )}
         </>
-      )}
-
-      {phase === 'magic_link' && (
-        <div className="space-y-5">
-          <button
-            type="button"
-            onClick={resetToEmailStep}
-            className="text-sm text-text-muted hover:text-text-secondary underline underline-offset-2"
-          >
-            ← Change email
-          </button>
-
-          <div className="flex flex-col gap-1.5">
-            <h2 className="text-xl font-medium text-slate-900 leading-snug">Confirm from your inbox</h2>
-            <p className="text-sm text-slate-500 leading-[150%]">
-              We sent a <strong className="font-normal">magic link</strong> to{' '}
-              <span className="font-normal text-slate-800">{email.trim()}</span>. Open the email and tap{' '}
-              <strong className="font-normal">Confirm email</strong> to verify — then return here.
-            </p>
-          </div>
-
-          <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600">
-            <EnvelopeOpenIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-            <p>
-              <span className="font-medium text-slate-800">Prototype:</span> no real email is sent. Use the button
-              below after you would have clicked the link in production.
-            </p>
-          </div>
-
-          <Button type="button" fullWidth className="font-medium" onClick={handleMagicLinkConfirmed}>
-            I've confirmed via the link
-            <ArrowRightIcon className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
-      )}
-
-      {phase === 'otp' && (
-        <div className="space-y-5">
-          <button
-            type="button"
-            onClick={resetToEmailStep}
-            className="text-sm text-slate-500 hover:text-slate-800 underline underline-offset-2"
-          >
-            ← Change email
-          </button>
-
-          <div className="flex flex-col gap-1.5">
-            <h2 className="text-xl font-medium text-slate-900 leading-snug">Enter verification code</h2>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              We sent a 6-digit code to{' '}
-              <span className="font-normal text-slate-700">{maskEmail(email.trim())}</span>. Enter it below to
-              confirm this address.
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-blue-100 bg-blue-50/80 px-3 py-2 text-xs text-slate-600">
-            <span className="font-medium text-slate-700">Prototype:</span> use OTP{' '}
-            <code className="rounded bg-white px-1.5 py-0.5 font-mono text-slate-800">{DEMO_VALID_OTP}</code>
-          </div>
-
-          {otpResentMessage && (
-            <p className="text-sm text-green-700">A new code was sent. Check your inbox.</p>
-          )}
-
-          <form onSubmit={handleOtpSubmit} className="space-y-4">
+      ) : (
+        <form onSubmit={handleOtpSubmit} className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="block text-sm font-normal text-text-secondary leading-snug">
+                Registered email
+              </label>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 select-all">
+                {email}
+              </div>
+            </div>
             <Input
               label="One-time code"
               type="text"
@@ -372,25 +234,38 @@ const Step1OrderSummary: React.FC<Step1Props> = ({ ctx, onConfirm }) => {
               maxLength={6}
               error={otpError}
             />
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                fullWidth
-                className="font-medium"
-                disabled={isSendingOtp}
-                onClick={() => void sendOtpMock(true)}
-              >
-                {isSendingOtp ? 'Sending…' : 'Resend code'}
-              </Button>
-              <Button type="submit" fullWidth className="font-medium" disabled={isSendingOtp}>
-                Verify & Continue
-                <ArrowRightIcon className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-          </form>
-        </div>
+          <div className="rounded-lg border border-blue-100 bg-blue-50/80 px-3 py-2 text-xs text-slate-600">
+            <span className="font-medium text-slate-700">Prototype:</span> use code{' '}
+            <code className="rounded bg-white px-1.5 py-0.5 font-mono text-slate-800">{DEMO_VALID_OTP}</code>
+          </div>
+
+          {otpResentMessage && (
+            <p className="text-sm text-green-700">A new code was sent. Check your inbox.</p>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              fullWidth
+              className="font-medium"
+              disabled={isSendingOtp || resendCountdown > 0}
+              onClick={() => void sendOtpMock(true)}
+            >
+              {isSendingOtp
+                ? 'Sending…'
+                : resendCountdown > 0
+                ? `Resend code in ${resendCountdown}`
+                : 'Resend code'}
+            </Button>
+            <Button type="submit" fullWidth className="font-medium" disabled={isSendingOtp}>
+              Verify &amp; Continue
+              <ArrowRightIcon className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </form>
       )}
     </div>
   );
@@ -655,7 +530,7 @@ const Step4Success: React.FC<Step4Props> = ({ ctx, enrolledCourse, confirmedEmai
               <ArrowRightIcon className="h-4 w-4 ml-2" />
             </Button>
           )}
-          <Button variant="outline" fullWidth onClick={() => navigate('/portal/orders')}>
+          <Button variant="outline" fullWidth onClick={() => navigate('/portal/access')}>
             View my orders
           </Button>
         </div>
@@ -709,7 +584,7 @@ const Step4Success: React.FC<Step4Props> = ({ ctx, enrolledCourse, confirmedEmai
             <ArrowRightIcon className="h-4 w-4 ml-2" />
           </Button>
         )}
-        <Button variant="outline" fullWidth onClick={() => navigate('/portal/orders')}>
+        <Button variant="outline" fullWidth onClick={() => navigate('/portal/access')}>
           View my orders
         </Button>
       </div>
@@ -720,7 +595,7 @@ const Step4Success: React.FC<Step4Props> = ({ ctx, enrolledCourse, confirmedEmai
 // ─── Main Portal Page ────────────────────────────────────────────────────────────
 
 type EnrollLocationState = {
-  /** Set by Success page after checkout for India only — skip Step 1; NSDC (step 2) if not on file, else enrollment. */
+  /** Passed by the Success page (Indian checkout) to skip Step 1 — email was verified at payment. */
   autoConfirmEmailFromCheckout?: boolean;
 };
 
@@ -748,10 +623,8 @@ export const PortalPage: React.FC = () => {
     setLoading(true);
     getPostPaymentContext(mockPaymentId, paymentMode, userDetails.countryCode)
       .then((data) => {
-        // Merge the email we already have from the checkout form
         const merged = { ...data, customerEmail: userDetails.email };
         setCtx(merged);
-        setConfirmedEmail(userDetails.email);
         setPostPaymentContext(merged);
       })
       .finally(() => setLoading(false));
@@ -767,14 +640,33 @@ export const PortalPage: React.FC = () => {
     const updated = { ...ctx, customerEmail: email };
     setCtx(updated);
     setPostPaymentContext(updated);
-
-    // Decide next step: skip NSDC if not Indian or already on file
     if (ctx.isIndianCustomer && !ctx.hasNsdcDataOnFile) {
       setStep(2);
     } else {
       setStep(3);
     }
   };
+
+  // Skip Step 1 when arriving from the Success page countdown (Indian checkout only).
+  // In that flow the email was already verified during payment, so OTP is redundant.
+  useEffect(() => {
+    if (loading || !ctx || checkoutAutoAdvanceDone.current) return;
+    const st = location.state as EnrollLocationState | null | undefined;
+    if (!st?.autoConfirmEmailFromCheckout) return;
+    checkoutAutoAdvanceDone.current = true;
+    navigate('.', { replace: true, state: {} });
+
+    const email = userDetails.email?.trim() || ctx.customerEmail;
+    setConfirmedEmail(email);
+    const updated = { ...ctx, customerEmail: email };
+    setCtx(updated);
+    setPostPaymentContext(updated);
+    if (ctx.isIndianCustomer && !ctx.hasNsdcDataOnFile) {
+      setStep(2);
+    } else {
+      setStep(3);
+    }
+  }, [loading, ctx, location.state, navigate, setPostPaymentContext, userDetails.email]);
 
   const handleNsdcSubmit = async (data: NsdcFormData) => {
     if (!ctx) return;
@@ -796,26 +688,6 @@ export const PortalPage: React.FC = () => {
     setTimeout(() => setStep(4), 1000);
   };
 
-  // After Success countdown: Indian checkout only — skip Step 1 email confirm → NSDC or enrollment.
-  // International users never receive this state; they complete Step 1 (email) first.
-  useEffect(() => {
-    if (loading || !ctx || checkoutAutoAdvanceDone.current) return;
-    const st = location.state as EnrollLocationState | null | undefined;
-    if (!st?.autoConfirmEmailFromCheckout) return;
-    checkoutAutoAdvanceDone.current = true;
-    navigate('.', { replace: true, state: {} });
-
-    const email = userDetails.email?.trim() || ctx.customerEmail;
-    setConfirmedEmail(email);
-    const updated = { ...ctx, customerEmail: email };
-    setCtx(updated);
-    setPostPaymentContext(updated);
-    if (ctx.isIndianCustomer && !ctx.hasNsdcDataOnFile) {
-      setStep(2);
-    } else {
-      setStep(3);
-    }
-  }, [loading, ctx, location.state, navigate, setPostPaymentContext, userDetails.email]);
 
   // ── Render ─────────────────────────────────────────────────────────────────────
 
