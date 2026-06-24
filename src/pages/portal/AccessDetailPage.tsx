@@ -358,9 +358,12 @@ export const AccessDetailPage: React.FC = () => {
 
             {/* Tools — shown before the completed NSDC summary */}
             {(order.toolAccesses ?? []).length > 0 && (
-              <Card className="p-5 sm:p-6">
-                <ToolAccessList toolAccesses={order.toolAccesses ?? []} />
-              </Card>
+              <div className="flex flex-col gap-3">
+                <h2 className="text-base font-medium text-text-primary">What's included</h2>
+                <Card className="p-5 sm:p-6">
+                  <ToolAccessList toolAccesses={order.toolAccesses ?? []} />
+                </Card>
+              </div>
             )}
 
             {/* Access details — pushed to bottom once NSDC / email is complete */}

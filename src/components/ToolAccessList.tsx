@@ -195,18 +195,6 @@ interface ToolAccessListProps {
 export const ToolAccessList: React.FC<ToolAccessListProps> = ({ toolAccesses }) => {
   return (
     <div>
-      {/* Section header */}
-      <h3 className="text-base font-medium text-slate-900 mb-4">
-        What's included with your order
-      </h3>
-
-      {/* Empty state */}
-      {toolAccesses.length === 0 && (
-        <p className="text-sm text-slate-500">
-          No additional items are included with this order.
-        </p>
-      )}
-
       {/* Tool rows */}
       {toolAccesses.length > 0 && (
         <div className="divide-y divide-slate-100 -mb-4">
