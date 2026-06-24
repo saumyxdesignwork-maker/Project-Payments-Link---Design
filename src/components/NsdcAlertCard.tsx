@@ -19,7 +19,7 @@ interface NsdcAlertCardProps {
 }
 
 export const NsdcAlertCard: React.FC<NsdcAlertCardProps> = ({ onCtaClick }) => (
-  <div className="overflow-hidden rounded-2xl border border-status-warning-border bg-status-warning-bg shadow-sm">
+  <div className="overflow-hidden rounded-2xl border border-status-warning-border bg-status-warning-bg/50 shadow-sm">
     <div className="flex items-start gap-4 p-4 sm:p-5">
       <img src={nsdcLogo} alt="NSDC" className="h-9 w-auto flex-shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
@@ -31,7 +31,7 @@ export const NsdcAlertCard: React.FC<NsdcAlertCardProps> = ({ onCtaClick }) => (
         </p>
       </div>
     </div>
-    <div className="flex items-center justify-between gap-3 border-t border-status-warning-border bg-status-warning-bg/70 px-4 py-3 sm:px-5">
+    <div className="flex items-center justify-between gap-3 border-t border-status-warning-border bg-status-warning-bg/35 px-4 py-3 sm:px-5">
       <p className="text-xs leading-normal text-status-warning-text">
         Your access is limited until this is complete.
       </p>

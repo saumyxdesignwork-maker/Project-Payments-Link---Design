@@ -26,6 +26,7 @@ import {
   CheckCircleIcon,
   ClockIcon,
   XCircleIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 
 import { Card } from '../../components/Card';
@@ -77,6 +78,22 @@ function deriveEffectiveAccess(order: Order): LmsEnrollmentStatus {
   return order.lmsEnrollmentStatus;
 }
 
+// ─── Invoice label derivation ─────────────────────────────────────────────────
+
+/**
+ * Returns the billing document label for the order summary card.
+ * Indian orders with an NSDC-mandatory program generate both a Bill of Supply
+ * (for NSDC-aligned items) and a GST Invoice (for non-NSDC items).
+ * Returns null for non-Indian orders where GST invoices don't apply.
+ */
+function getInvoiceLabel(order: Order): string | null {
+  if (order.currency !== 'INR') return null;
+  if (order.nsdcRequired && order.programNsdcMandatory) {
+    return 'Bill of Supply + GST Invoice';
+  }
+  return 'GST Invoice';
+}
+
 // ─── Currency / date helpers ──────────────────────────────────────────────────
 
 function formatAmount(amount: number, currency: string): string {
@@ -125,6 +142,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
 
   const paidAmount = totalAmount - pendingAmount;
   const isIndian = countryCode === 'IN';
+  const invoiceLabel = getInvoiceLabel(order);
 
   return (
     <Card className="p-5 sm:p-6 space-y-4">
@@ -152,6 +170,15 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
           <span className="text-text-muted">Country</span>
           <span className="text-text-secondary">{isIndian ? 'India' : countryCode}</span>
         </div>
+        {invoiceLabel && (
+          <div className="flex justify-between sm:flex-col sm:gap-0.5 sm:col-span-2">
+            <span className="text-text-muted">Billing documents</span>
+            <span className="inline-flex items-center gap-1.5 text-text-secondary">
+              <DocumentTextIcon className="h-3.5 w-3.5 flex-shrink-0 text-text-subtle" />
+              {invoiceLabel}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Paid / Pending breakdown */}
@@ -162,7 +189,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ order }) => {
         </div>
         {paymentStatus === 'partial' && (
           <div className="flex justify-between">
-            <span className="text-text-muted">Pending</span>
+            <span className="text-text-muted">Remaining</span>
             <span className="font-semibold text-status-warning-text">{formatAmount(pendingAmount, currency)}</span>
           </div>
         )}
@@ -193,7 +220,7 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, currency, secti
     return wrap(
       <Card className="p-5 sm:px-6 sm:py-4">
         <h3 className="mb-3 text-base font-medium text-text-primary">Payment History</h3>
-        <p className="text-sm text-text-muted">No payment records found for this order.</p>
+        <p className="text-sm text-text-muted">No payments on record.</p>
       </Card>,
     );
   }
@@ -252,7 +279,7 @@ interface InvoicesSectionProps {
 
 function invoiceStatusBadge(status: Invoice['status']) {
   const map: Record<Invoice['status'], { label: string; variant: 'success' | 'warning' | 'default' }> = {
-    available:   { label: 'Available',  variant: 'success' },
+    available:   { label: 'Ready',      variant: 'success' },
     pending:     { label: 'Generating', variant: 'warning' },
     unavailable: { label: 'N/A',        variant: 'default' },
   };
@@ -264,7 +291,7 @@ const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => (
     <h3 className="mb-4 text-base font-medium text-text-primary">Invoices</h3>
 
     {invoices.length === 0 ? (
-      <p className="text-sm text-text-muted">No invoices found for this order.</p>
+      <p className="text-sm text-text-muted">No invoices yet.</p>
     ) : (
       <div className="divide-y divide-border-subtle">
         {invoices.map((inv) => {
@@ -293,9 +320,7 @@ const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => (
                     <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
                   </a>
                 )}
-                {inv.status === 'pending' && (
-                  <span className="text-xs text-text-muted">Ready soon</span>
-                )}
+                {inv.status === 'pending' && null}
               </div>
             </div>
           );
@@ -326,7 +351,7 @@ const RefundsSection: React.FC<RefundsSectionProps> = ({ refunds, currency }) =>
     <h3 className="mb-4 text-base font-medium text-text-primary">Refunds</h3>
 
     {refunds.length === 0 ? (
-      <p className="text-sm text-text-muted">No refunds have been issued for this order.</p>
+      <p className="text-sm text-text-muted">No refunds issued.</p>
     ) : (
       <div className="divide-y divide-border-subtle">
         {refunds.map((refund) => {
@@ -464,6 +489,7 @@ export const OrderDetailPage: React.FC = () => {
                 effectiveLmsStatus={deriveEffectiveAccess(order)}
                 bookingToolAccesses={(order.toolAccesses ?? []).filter((t) => t.includedInBooking)}
                 onNsdcCtaClick={goToAccess}
+                invoiceLabel={getInvoiceLabel(order)}
               />
             ) : (
               <>
@@ -476,12 +502,6 @@ export const OrderDetailPage: React.FC = () => {
               </>
             )}
 
-            {/* D. Invoices */}
-            <InvoicesSection invoices={invoices} currency={order.currency} />
-
-            {/* E. Refunds */}
-            <RefundsSection refunds={refunds} currency={order.currency} />
-
             {/* C. Payment history */}
             <PaymentsTable
               payments={payments}
@@ -492,6 +512,12 @@ export const OrderDetailPage: React.FC = () => {
                   : undefined
               }
             />
+
+            {/* D. Invoices */}
+            <InvoicesSection invoices={invoices} currency={order.currency} />
+
+            {/* E. Refunds */}
+            <RefundsSection refunds={refunds} currency={order.currency} />
           </>
         )}
 

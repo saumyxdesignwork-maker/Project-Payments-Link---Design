@@ -47,7 +47,7 @@ export function getAccessStatus(order: Order): {
 
   if (!emailConfirmed) {
     return {
-      label: 'Email required',
+      label: 'Confirm email',
       detail: 'Confirm your email to activate access.',
       type: 'action',
       actionKind: 'email',

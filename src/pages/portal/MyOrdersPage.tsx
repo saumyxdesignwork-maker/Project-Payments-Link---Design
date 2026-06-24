@@ -59,7 +59,7 @@ const EmptyState: React.FC = () => (
       You don't have any orders yet.
     </h3>
     <p className="text-sm text-slate-500 mb-6">
-      Once you enrol in a program, your order history will appear here.
+      Once you enroll in a program, your order history will appear here.
     </p>
     <Link
       to="/"
@@ -105,13 +105,13 @@ export const MyOrdersPage: React.FC = () => {
 
         {/* ── Page header ── */}
         <div className="mb-6">
-          <h1 className="text-2xl font-medium text-slate-900">My Orders</h1>
+          <h1 className="text-2xl font-medium text-text-primary">My Orders</h1>
 
         </div>
 
         {/* ── Error state ── */}
         {error && (
-          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-sm text-red-700">
+          <div className="status-banner status-banner-error mb-6 flex items-start gap-3 text-sm">
             <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>
@@ -140,7 +140,7 @@ export const MyOrdersPage: React.FC = () => {
 
         {/* ── Footer ── */}
         <p className="text-center text-xs text-slate-400 mt-8">
-          Questions?{' '}
+          Need help?{' '}
           <a href="mailto:support@growthschool.io" className="underline">
             support@growthschool.io
           </a>

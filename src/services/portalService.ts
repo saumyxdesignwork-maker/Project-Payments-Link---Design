@@ -285,6 +285,41 @@ const MOCK_ORDERS: Order[] = [
       },
     ],
   },
+  /**
+   * International learner, paid in full, email not yet confirmed.
+   * Dedicated mock for the email-confirmation card on the Get Access page.
+   * Unlike ORD-002, this order is never mutated by the NSDC flow so the
+   * email-pending state is always visible in a fresh browser session.
+   */
+  {
+    id: 'ORD-EMAIL',
+    userId: 'cust-mock-001',
+    programName: 'Growth Marketing Accelerator',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    totalAmount: 299,
+    currency: 'USD',
+    countryCode: 'US',
+    paymentStatus: 'paid',
+    pendingAmount: 0,
+    nsdcRequired: false,
+    nsdcCompleted: false,
+    lmsEnrollmentStatus: 'real',
+    emailConfirmed: true,
+    lmsLink: 'https://lms.growthschool.io/growth-marketing',
+    customerEmail: 'learner@example.com',
+    customerName: 'Demo Learner',
+    cohortStartDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    cohortId: 'c7',
+    cohortChangeUsed: false,
+    purchasedProducts: [
+      {
+        id: 'prod-email-main',
+        name: 'Growth Marketing Accelerator',
+        productTag: 'Main Program',
+        accessType: 'email_24h',
+      },
+    ],
+  },
   {
     id: 'ORD-DONE',
     userId: 'cust-mock-001',

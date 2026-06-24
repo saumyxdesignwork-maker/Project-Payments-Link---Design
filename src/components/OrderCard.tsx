@@ -1,75 +1,47 @@
 /**
  * OrderCard.tsx
  *
- * Displays a single order in the portal home order list.
- * Shows top-level order metadata and access status; the whole card navigates to the order detail page.
+ * Displays a single order in the My Orders list.
+ * Focused on order-level payment, billing, and item context — not fulfillment.
  *
- * Access status has 6 states derived from the order flags — all text-only,
- * no interactive elements here (those live on the OrderDetail page).
+ * Card sections (top → bottom):
+ *   1. Header — program name, Order ID, date, payment status badge, items summary
+ *   2. Payment summary — partial progress bar OR full-paid row (DO NOT EDIT these elements)
+ *   3. Invoice context — billing document type derived from order properties
+ *   4. Action row — explicit links to order detail and Get Access
  */
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ExclamationTriangleIcon, CheckCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { Badge } from './Badge';
 import { Card } from './Card';
 import type { Order } from '../types/order';
 import { formatDate } from '../utils/formatters';
 
-// ─── Access status derivation ────────────────────────────────────────────────────
+// ─── Items summary ────────────────────────────────────────────────────────────
 
 /**
- * Derives the access status message and icon for an order.
- * These 6 states map exactly to the spec.
+ * Formats a compact, single-line summary of purchased products.
+ * Shows up to 2 product names; truncates the rest to "+ N more".
  */
-function getAccessStatus(order: Order): {
-  message: string;
-  type: 'action' | 'info' | 'success';
-} {
-  const { nsdcRequired, nsdcCompleted, lmsEnrollmentStatus, emailConfirmed } = order;
-
-  // Indian learner path (NSDC required)
-  if (nsdcRequired) {
-    if (!nsdcCompleted && order.nsdcRetroactiveCollectionRequired) {
-      return {
-        message:
-          'NSDC registration is now required for this earlier purchase (details were not collected when you enrolled). Complete it once to stay aligned with certification rules.',
-        type: 'action',
-      };
-    }
-    if (!nsdcCompleted) {
-      return {
-        message: 'Action needed: complete NSDC form to unlock full LMS access.',
-        type: 'action',
-      };
-    }
-    if (lmsEnrollmentStatus === 'real') {
-      return { message: 'Full LMS access active.', type: 'success' };
-    }
-    // nsdcCompleted but still on dummy cohort (partial payment or processing)
-    return {
-      message: 'Temporary cohort access active; full access after NSDC + full payment.',
-      type: 'info',
-    };
-  }
-
-  // Non-Indian learner path (email confirmation required)
-  if (!emailConfirmed) {
-    return {
-      message: 'Confirm your email to activate access.',
-      type: 'action',
-    };
-  }
-  return { message: 'Access active.', type: 'success' };
+function formatItemsSummary(order: Order): string | null {
+  const products = order.purchasedProducts;
+  if (!products || products.length === 0) return null;
+  if (products.length === 1) return products[0].name;
+  if (products.length === 2) return `${products[0].name}, ${products[1].name}`;
+  return `${products[0].name}, ${products[1].name} +${products.length - 2} more`;
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
 interface OrderCardProps {
   order: Order;
 }
 
 export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
+  const navigate = useNavigate();
+
   const {
     id,
     programName,
@@ -79,7 +51,6 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
     pendingAmount,
     currency,
   } = order;
-  const accessStatus = getAccessStatus(order);
 
   const formatAmount = (amount: number) =>
     new Intl.NumberFormat('en-IN', {
@@ -89,71 +60,91 @@ export const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
     }).format(amount);
 
   const paidAmount = totalAmount - pendingAmount;
-
-  const AccessIcon =
-    accessStatus.type === 'action'
-      ? ExclamationTriangleIcon
-      : accessStatus.type === 'success'
-      ? CheckCircleIcon
-      : InformationCircleIcon;
-
-  const accessIconClass =
-    accessStatus.type === 'action'
-      ? 'text-status-warning-solid'
-      : accessStatus.type === 'success'
-      ? 'text-status-success-solid'
-      : 'text-status-info-solid';
+  const itemsSummary = formatItemsSummary(order);
 
   return (
-    <Link
-      to={`/portal/orders/${id}`}
-      className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-      aria-label={`View order ${id}: ${programName}`}
-    >
-      <Card className="flex h-full cursor-pointer flex-col gap-4 p-5 transition-shadow transition-colors group-hover:border-border-strong group-hover:shadow-md sm:p-6">
-      {/* ── Header row: program name + payment badge ── */}
+    <Card className="flex flex-col gap-4 p-5 sm:p-6">
+
+      {/* ── Header: program name, order meta, items, badge ── */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="min-w-0">
-          <h3 className="text-base font-medium leading-snug text-text-primary">
-            {programName}
-          </h3>
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/portal/orders/${id}`}
+            className="group/title focus-visible:outline-none"
+          >
+            <h3 className="text-base font-medium leading-snug text-text-primary group-hover/title:text-primary transition-colors">
+              {programName}
+            </h3>
+          </Link>
           <p className="mt-0.5 text-sm text-text-muted">
             Order #{id} · {formatDate(createdAt)}
           </p>
+          {itemsSummary && (
+            <p className="mt-1 text-xs text-text-muted truncate">
+              {itemsSummary}
+            </p>
+          )}
         </div>
-        <Badge variant={paymentStatus === 'paid' ? 'success' : 'warning'} className="flex-shrink-0">
-          {paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+        <Badge
+          variant={paymentStatus === 'paid' ? 'success' : 'warning'}
+          className="flex-shrink-0"
+        >
+          {paymentStatus === 'paid' ? 'Paid' : 'Partial'}
         </Badge>
       </div>
 
-      {/* ── Price row ── */}
-      <div className="flex items-center gap-3 text-sm">
-        {paymentStatus === 'partial' ? (
-          <>
-            <span className="font-medium text-text-primary">{formatAmount(paidAmount)} paid</span>
-            <span className="text-text-muted">·</span>
-            <span className="text-status-warning-text font-medium">{formatAmount(pendingAmount)} remaining</span>
-          </>
-        ) : (
+      {/* ── Payment summary (DO NOT EDIT — preserved per spec) ── */}
+      {paymentStatus === 'partial' ? (
+        <div className="space-y-2">
+          {/* Paid / remaining amounts */}
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-sm font-medium text-text-primary">
+              {formatAmount(paidAmount)} paid
+            </span>
+            <span className="text-xs text-status-warning-text font-medium">
+              {formatAmount(pendingAmount)} remaining
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-2 w-full rounded-full bg-border-subtle overflow-hidden">
+            <div
+              className="h-full rounded-full bg-status-success-solid transition-all duration-500"
+              style={{ width: `${Math.min(100, (paidAmount / totalAmount) * 100)}%` }}
+            />
+          </div>
+
+          {/* Total */}
+          <p className="text-xs text-text-muted">
+            {formatAmount(totalAmount)} total
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-lg bg-surface-subtle px-4 py-3 flex items-center justify-between text-sm">
+          <span className="text-text-muted">Paid</span>
           <span className="font-medium text-text-primary">{formatAmount(totalAmount)}</span>
-        )}
+        </div>
+      )}
+
+      {/* ── Action row ── */}
+      <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
+        <button
+          type="button"
+          onClick={() => navigate(`/portal/orders/${id}`)}
+          className="text-xs text-text-muted hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+        >
+          View order details
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate(`/portal/access/${id}`)}
+          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+        >
+          Get Access
+          <ArrowRightIcon className="h-3 w-3" />
+        </button>
       </div>
 
-      {/* ── Access status ── */}
-      <div
-        className={[
-          'flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm',
-          accessStatus.type === 'action'
-            ? 'bg-status-warning-bg text-status-warning-text'
-            : accessStatus.type === 'success'
-            ? 'bg-status-success-bg text-status-success-text'
-            : 'bg-status-info-bg text-status-info-text',
-        ].join(' ')}
-      >
-        <AccessIcon className={`h-4 w-4 flex-shrink-0 mt-0.5 ${accessIconClass}`} />
-        <span>{accessStatus.message}</span>
-      </div>
-      </Card>
-    </Link>
+    </Card>
   );
 };
