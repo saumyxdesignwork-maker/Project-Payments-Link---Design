@@ -22,7 +22,6 @@ import {
   ExclamationCircleIcon,
   CalendarDaysIcon,
   ArrowRightIcon,
-  ArrowTopRightOnSquareIcon,
   CheckBadgeIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
