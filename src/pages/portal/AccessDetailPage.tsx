@@ -366,8 +366,8 @@ export const AccessDetailPage: React.FC = () => {
               </div>
             )}
 
-            {/* Access details — pushed to bottom once NSDC / email is complete */}
-            {!(order.nsdcRequired && !order.nsdcCompleted) && !(!order.nsdcRequired && !order.emailConfirmed) && (
+            {/* NSDC profile summary — shown at the bottom only for NSDC programs once registration is done */}
+            {order.nsdcRequired && order.nsdcCompleted && (
               <div className="flex flex-col gap-3">
                 <h2 className="text-base font-medium text-text-primary">Your NSDC details</h2>
                 <Card id="get-access" className="p-5 sm:p-6 scroll-mt-6">
@@ -377,6 +377,7 @@ export const AccessDetailPage: React.FC = () => {
                       handleOrderUpdated(updates);
                       setNsdcGateError(false);
                     }}
+                    summaryOnly
                   />
                 </Card>
               </div>

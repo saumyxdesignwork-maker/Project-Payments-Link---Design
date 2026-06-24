@@ -428,9 +428,14 @@ interface AccessPanelProps {
   order: Order;
   /** Called when NSDC submission or email confirmation succeeds, so the parent can refresh. */
   onOrderUpdated: (updates: Partial<Order>) => void;
+  /**
+   * When true, only renders the NSDC read-only profile (no links panel, no form).
+   * Used in the "Your NSDC details" bottom section where registration is already done.
+   */
+  summaryOnly?: boolean;
 }
 
-export const AccessPanel: React.FC<AccessPanelProps> = ({ order, onOrderUpdated }) => {
+export const AccessPanel: React.FC<AccessPanelProps> = ({ order, onOrderUpdated, summaryOnly }) => {
   const {
     id: orderId,
     nsdcRequired,
@@ -467,14 +472,18 @@ export const AccessPanel: React.FC<AccessPanelProps> = ({ order, onOrderUpdated 
       );
     }
 
+    if (summaryOnly) {
+      return <NsdcReadOnlySummary order={order} />;
+    }
+
     return (
       <div className="space-y-6">
-        {/* NSDC complete confirmation badge — visible at a glance when returning to the page */}
+        {/* NSDC complete confirmation badge */}
         <div className="status-banner status-banner-success flex items-center gap-2 px-4 py-3">
           <CheckCircleIcon className="h-5 w-5 text-status-success-solid flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-sm font-medium text-status-success-text leading-snug">NSDC registration complete</p>
-            <p className="text-xs text-status-success-text mt-0.5 leading-normal">Your details are on file. Access links are active below.</p>
+            <p className="text-xs text-status-success-text mt-0.5 leading-normal">Your details are on file.</p>
           </div>
         </div>
         <NsdcReadOnlySummary order={order} />
