@@ -260,6 +260,67 @@ export interface Order {
 }
 
 /**
+ * A single receipt document linked to an order.
+ *
+ * Fetched as part of:
+ *   GET /api/portal/orders/:id  → { order, payments, receipts, invoices, refunds }
+ *
+ * Backend integration point:
+ *   SELECT * FROM receipts WHERE order_id = :orderId ORDER BY issued_at DESC
+ *
+ * One receipt is typically issued per payment, but the model supports
+ * multiple receipts per order (e.g. booking receipt + instalment receipts).
+ */
+export interface Receipt {
+  id: string;
+  orderId: string;
+
+  issuedAt: string;    // ISO datetime string
+  amount: number;
+  currency: string;
+
+  /**
+   * available   — PDF is ready; show downloadUrl
+   * pending     — being generated; no download yet
+   * unavailable — not applicable for this order
+   */
+  status: 'available' | 'pending' | 'unavailable';
+
+  downloadUrl?: string; // direct link to PDF, present when status === 'available'
+
+  /** Human-readable label shown in the row, e.g. "Booking Receipt", "Instalment 1 Receipt" */
+  label?: string;
+
+  /** Optional reference back to the Payment this receipt was issued for */
+  paymentId?: string;
+}
+
+/**
+ * Structured type that describes what kind of invoice-like document an Invoice is.
+ * Used to derive a display label when the explicit `label` field is unset.
+ * Extend this union (and INVOICE_DOCUMENT_LABELS below) to add future document types.
+ */
+export type InvoiceDocumentType =
+  | 'tax_invoice'      // taxable supply — shown as "Invoice"
+  | 'bill_of_supply'   // non-taxable / exempt supply — shown as "Bill of Supply"
+  | 'interim'          // issued before full payment — shown as "Interim Invoice"
+  | 'final'            // issued once fully settled — shown as "Final Invoice"
+  | 'proforma';        // pre-order estimate — shown as "Proforma Invoice"
+
+/**
+ * Single source of truth for invoice document display labels.
+ * When an Invoice has a documentType but no explicit label, the UI derives
+ * the display string from this map. Add future types here.
+ */
+export const INVOICE_DOCUMENT_LABELS: Record<InvoiceDocumentType, string> = {
+  tax_invoice:    'Invoice',
+  bill_of_supply: 'Bill of Supply',
+  interim:        'Interim Invoice',
+  final:          'Final Invoice',
+  proforma:       'Proforma Invoice',
+};
+
+/**
  * A single invoice document linked to an order.
  *
  * Fetched as part of:
@@ -285,9 +346,48 @@ export interface Invoice {
 
   downloadUrl?: string; // direct link to PDF, present when status === 'available'
 
-  /** Human-readable label shown in the row, e.g. "GST Invoice", "Proforma Invoice" */
+  /**
+   * Structured document type used to derive a display label when `label` is unset.
+   * Resolution order: explicit label → documentType → "Invoice".
+   */
+  documentType?: InvoiceDocumentType;
+
+  /**
+   * Explicit display label override. When set, takes precedence over documentType.
+   * Use for one-off labels; prefer documentType for standard cases.
+   */
   label?: string;
+
+  /**
+   * Outstanding balance shown on interim / proforma invoices issued before full
+   * payment (e.g. when the course starts early). Omit or set 0 on final invoices
+   * once the order is fully settled — the "amount due" line is hidden when this
+   * is absent or zero.
+   */
+  amountDue?: number;
 }
+
+/**
+ * Structured type that describes what kind of refund document a Refund represents.
+ * Used to derive a display label when the explicit `label` field is unset.
+ * Business rules:
+ *   credit_note    — refund issued after full payment when an invoice already exists.
+ *   refund_voucher — refund issued before full payment when no final invoice exists yet.
+ * Extend this union (and REFUND_DOCUMENT_LABELS below) to add future variants.
+ */
+export type RefundDocumentType =
+  | 'credit_note'     // refund after full payment, invoice exists
+  | 'refund_voucher'; // refund before full payment, no invoice yet
+
+/**
+ * Single source of truth for refund document display labels.
+ * When a Refund has a documentType but no explicit label, the UI derives
+ * the display string from this map. Add future types here.
+ */
+export const REFUND_DOCUMENT_LABELS: Record<RefundDocumentType, string> = {
+  credit_note:    'Credit Note',
+  refund_voucher: 'Refund Voucher',
+};
 
 /**
  * A single refund record linked to an order.
@@ -308,6 +408,21 @@ export interface Refund {
 
   /** processed — credited back; pending — in-flight; rejected — declined */
   status: 'processed' | 'pending' | 'rejected';
+
+  /**
+   * Structured document type used to derive a display label when `label` is unset.
+   * Resolution order: explicit label → documentType → "Refund".
+   */
+  documentType?: RefundDocumentType;
+
+  /**
+   * Explicit display label override. When set, takes precedence over documentType.
+   * Use for one-off labels; prefer documentType for standard cases.
+   */
+  label?: string;
+
+  /** Direct link to the refund document PDF, present once the document is generated. */
+  downloadUrl?: string;
 
   /** Short human-readable reason shown in the row, e.g. "Duplicate payment" */
   reason?: string;

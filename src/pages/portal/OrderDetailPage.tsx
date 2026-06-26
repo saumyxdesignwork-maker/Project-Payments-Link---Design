@@ -31,11 +31,14 @@ import {
 
 import { Card } from '../../components/Card';
 import { Badge } from '../../components/Badge';
+import { DocumentSection } from '../../components/DocumentSection';
+import type { DocumentItem } from '../../components/DocumentSection';
 import { PartialPaymentStatus } from '../../components/PartialPaymentStatus';
 import { NsdcAlertCard } from '../../components/NsdcAlertCard';
 import { getOrder } from '../../services/portalService';
 import { formatDate, formatDateTime } from '../../utils/formatters';
-import type { Order, Payment, Invoice, Refund, LmsEnrollmentStatus } from '../../types/order';
+import { INVOICE_DOCUMENT_LABELS, REFUND_DOCUMENT_LABELS } from '../../types/order';
+import type { Order, Payment, Receipt, Invoice, Refund, LmsEnrollmentStatus } from '../../types/order';
 
 // ─── Access upgrade logic ─────────────────────────────────────────────────────
 
@@ -250,17 +253,6 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, currency, secti
                   </div>
                   <Badge variant={badge.variant}>{badge.label}</Badge>
                 </div>
-                {payment.receiptUrl && (
-                  <a
-                    href={payment.receiptUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 mt-1.5 text-sm font-medium text-primary hover:underline leading-normal"
-                  >
-                    View receipt
-                    <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
-                  </a>
-                )}
               </div>
             </div>
           );
@@ -270,122 +262,103 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, currency, secti
   );
 };
 
-// ─── Section D: Invoices ──────────────────────────────────────────────────────
+// ─── Document section mappers ─────────────────────────────────────────────────
+//
+// These pure helpers convert domain arrays into the generic DocumentItem shape
+// consumed by DocumentSection. All layout/rendering logic lives in that component.
 
-interface InvoicesSectionProps {
-  invoices: Invoice[];
-  currency: string;
-}
-
-function invoiceStatusBadge(status: Invoice['status']) {
-  const map: Record<Invoice['status'], { label: string; variant: 'success' | 'warning' | 'default' }> = {
+function receiptsToItems(receipts: Receipt[]): DocumentItem[] {
+  const statusBadge: Record<Receipt['status'], { label: string; variant: 'success' | 'warning' | 'default' }> = {
     available:   { label: 'Ready',      variant: 'success' },
     pending:     { label: 'Generating', variant: 'warning' },
     unavailable: { label: 'N/A',        variant: 'default' },
   };
-  return map[status];
+  // Sort ascending by issuedAt so booking receipt always appears first, then
+  // instalment receipts in the order they were issued. Safe for single-receipt orders.
+  const ordered = [...receipts].sort(
+    (a, b) => new Date(a.issuedAt).getTime() - new Date(b.issuedAt).getTime(),
+  );
+  return ordered.map((r) => ({
+    id: r.id,
+    title: r.label ?? 'Receipt',
+    meta: [
+      { text: r.id, mono: true },
+      { text: formatDate(r.issuedAt) },
+    ],
+    badge: statusBadge[r.status],
+    actions: r.status === 'available' && r.downloadUrl
+      ? [{ label: 'Download', href: r.downloadUrl }]
+      : undefined,
+  }));
 }
 
-const InvoicesSection: React.FC<InvoicesSectionProps> = ({ invoices }) => (
-  <Card className="p-5 sm:px-6 sm:py-4">
-    <h3 className="mb-4 text-base font-medium text-text-primary">Invoices</h3>
-
-    {invoices.length === 0 ? (
-      <p className="text-sm text-text-muted">No invoices yet.</p>
-    ) : (
-      <div className="divide-y divide-border-subtle">
-        {invoices.map((inv) => {
-          const badge = invoiceStatusBadge(inv.status);
-          return (
-            <div key={inv.id} className="py-3 flex items-start justify-between gap-3 flex-wrap">
-              <div className="min-w-0">
-                <p className="text-sm font-medium leading-normal text-text-primary">
-                  {inv.label ?? 'Invoice'}
-                </p>
-                <p className="mt-0.5 font-mono text-sm leading-normal text-text-muted">{inv.id}</p>
-                <p className="text-xs leading-normal text-text-muted">
-                  {formatDate(inv.issuedAt)}
-                </p>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <Badge variant={badge.variant}>{badge.label}</Badge>
-                {inv.status === 'available' && inv.downloadUrl && (
-                  <a
-                    href={inv.downloadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline leading-normal"
-                  >
-                    Download
-                    <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
-                  </a>
-                )}
-                {inv.status === 'pending' && null}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </Card>
-);
-
-// ─── Section E: Refunds ───────────────────────────────────────────────────────
-
-interface RefundsSectionProps {
-  refunds: Refund[];
-  currency: string;
+/**
+ * Resolves the display label for an invoice document.
+ * Resolution order: explicit label → documentType map → fallback "Invoice".
+ */
+function resolveInvoiceLabel(inv: Invoice): string {
+  if (inv.label) return inv.label;
+  if (inv.documentType) return INVOICE_DOCUMENT_LABELS[inv.documentType];
+  return 'Invoice';
 }
 
-function refundStatusBadge(status: Refund['status']) {
-  const map: Record<Refund['status'], { label: string; variant: 'success' | 'warning' | 'error' }> = {
+function invoicesToItems(invoices: Invoice[]): DocumentItem[] {
+  const statusBadge: Record<Invoice['status'], { label: string; variant: 'success' | 'warning' | 'default' }> = {
+    available:   { label: 'Ready',      variant: 'success' },
+    pending:     { label: 'Generating', variant: 'warning' },
+    unavailable: { label: 'N/A',        variant: 'default' },
+  };
+  return invoices.map((inv) => ({
+    id: inv.id,
+    title: resolveInvoiceLabel(inv),
+    meta: [
+      { text: inv.id, mono: true },
+      { text: formatDate(inv.issuedAt) },
+      { text: formatAmount(inv.amount, inv.currency) },
+      // Show outstanding balance on interim invoices; hidden when absent or zero
+      ...(inv.amountDue && inv.amountDue > 0
+        ? [{ text: `Amount due: ${formatAmount(inv.amountDue, inv.currency)}` }]
+        : []),
+    ],
+    badge: statusBadge[inv.status],
+    actions: inv.status === 'available' && inv.downloadUrl
+      ? [{ label: 'Download', href: inv.downloadUrl }]
+      : undefined,
+  }));
+}
+
+/**
+ * Resolves the display label for a refund document.
+ * Resolution order: explicit label → documentType map → fallback "Refund".
+ */
+function resolveRefundLabel(refund: Refund): string {
+  if (refund.label) return refund.label;
+  if (refund.documentType) return REFUND_DOCUMENT_LABELS[refund.documentType];
+  return 'Refund';
+}
+
+function refundsToItems(refunds: Refund[]): DocumentItem[] {
+  const statusBadge: Record<Refund['status'], { label: string; variant: 'success' | 'warning' | 'error' }> = {
     processed: { label: 'Processed', variant: 'success' },
     pending:   { label: 'Pending',   variant: 'warning' },
     rejected:  { label: 'Rejected',  variant: 'error'   },
   };
-  return map[status];
+  return refunds.map((refund) => ({
+    id: refund.id,
+    title: resolveRefundLabel(refund),
+    meta: [
+      { text: refund.id, mono: true },
+      { text: formatDateTime(refund.initiatedAt) },
+      { text: formatAmount(refund.amount, refund.currency) },
+      ...(refund.reason ? [{ text: refund.reason }] : []),
+      ...(refund.referenceId ? [{ text: `Ref: ${refund.referenceId}`, mono: true }] : []),
+    ],
+    badge: statusBadge[refund.status],
+    actions: refund.downloadUrl
+      ? [{ label: 'Download', href: refund.downloadUrl }]
+      : undefined,
+  }));
 }
-
-const RefundsSection: React.FC<RefundsSectionProps> = ({ refunds, currency }) => (
-  <Card className="p-5 sm:px-6 sm:py-4">
-    <h3 className="mb-4 text-base font-medium text-text-primary">Refunds</h3>
-
-    {refunds.length === 0 ? (
-      <p className="text-sm text-text-muted">No refunds issued.</p>
-    ) : (
-      <div className="divide-y divide-border-subtle">
-        {refunds.map((refund) => {
-          const badge = refundStatusBadge(refund.status);
-          return (
-            <div key={refund.id} className="py-3 flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 flex-wrap">
-                  <div>
-                    <p className="text-base font-medium leading-normal text-text-primary">
-                      {formatAmount(refund.amount, currency)}
-                    </p>
-                    <p className="mt-0.5 text-sm leading-normal text-text-muted">
-                      {formatDateTime(refund.initiatedAt)}
-                    </p>
-                    {refund.reason && (
-                      <p className="mt-0.5 text-sm leading-normal text-text-secondary">{refund.reason}</p>
-                    )}
-                    {refund.referenceId && (
-                      <p className="mt-0.5 font-mono text-xs leading-normal text-text-muted">
-                        Ref: {refund.referenceId}
-                      </p>
-                    )}
-                  </div>
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </Card>
-);
 
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
 
@@ -415,6 +388,7 @@ export const OrderDetailPage: React.FC = () => {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [refunds, setRefunds] = useState<Refund[]>([]);
   const [loading, setLoading] = useState(true);
@@ -425,9 +399,10 @@ export const OrderDetailPage: React.FC = () => {
     setLoading(true);
     // Real version: GET /api/portal/orders/:orderId  (auth via session)
     getOrder(orderId)
-      .then(({ order: fetchedOrder, payments: fetchedPayments, invoices: fetchedInvoices, refunds: fetchedRefunds }) => {
+      .then(({ order: fetchedOrder, payments: fetchedPayments, receipts: fetchedReceipts, invoices: fetchedInvoices, refunds: fetchedRefunds }) => {
         setOrder(fetchedOrder);
         setPayments(fetchedPayments);
+        setReceipts(fetchedReceipts);
         setInvoices(fetchedInvoices);
         setRefunds(fetchedRefunds);
       })
@@ -513,11 +488,26 @@ export const OrderDetailPage: React.FC = () => {
               }
             />
 
-            {/* D. Invoices */}
-            <InvoicesSection invoices={invoices} currency={order.currency} />
+            {/* D. Receipts */}
+            <DocumentSection
+              title="Receipts"
+              emptyText="No receipts yet."
+              items={receiptsToItems(receipts)}
+            />
 
-            {/* E. Refunds */}
-            <RefundsSection refunds={refunds} currency={order.currency} />
+            {/* E. Invoices */}
+            <DocumentSection
+              title="Invoices"
+              emptyText="No invoices yet."
+              items={invoicesToItems(invoices)}
+            />
+
+            {/* F. Refunds */}
+            <DocumentSection
+              title="Refunds"
+              emptyText="No refunds issued."
+              items={refundsToItems(refunds)}
+            />
           </>
         )}
 

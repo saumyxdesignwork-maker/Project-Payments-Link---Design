@@ -153,7 +153,7 @@ const ScheduleRow: React.FC<ScheduleRowProps> = ({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400 hover:text-emerald-300 hover:underline"
               >
-                View receipt
+                Download receipt
                 <ArrowTopRightOnSquareIcon className="h-3 w-3" />
               </a>
             )}
