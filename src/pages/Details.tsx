@@ -298,7 +298,7 @@ export const DetailsPage: React.FC = () => {
                    <img
                      src={BRANDS[brand].logo}
                      alt={BRANDS[brand].logoAlt}
-                     className="h-4 w-auto flex-shrink-0 object-contain"
+                     className={`${brand === 'growthschool' ? 'h-6' : 'h-4'} w-auto flex-shrink-0 object-contain`}
                    />
                    <div>
                      <h3 className="font-medium text-slate-900">Certification of Completion included</h3>

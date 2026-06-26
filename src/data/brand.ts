@@ -16,6 +16,8 @@ export interface BrandConfig {
   name: string;
   logo: string;
   logoAlt: string;
+  /** Tailwind height class for the certificate card logo */
+  cardLogoClass: string;
   tokens: BrandTokens;
 }
 
@@ -25,6 +27,7 @@ export const BRANDS: Record<BrandType, BrandConfig> = {
     name: 'Outskill',
     logo: outskillLogo,
     logoAlt: 'Outskill',
+    cardLogoClass: 'h-4',
     tokens: {
       primary:            '30 58 47',
       primaryHover:       '22 45 36',
@@ -38,6 +41,7 @@ export const BRANDS: Record<BrandType, BrandConfig> = {
     name: 'GrowthSchool',
     logo: gsLogo,
     logoAlt: 'GrowthSchool',
+    cardLogoClass: 'h-6',
     tokens: {
       primary:            '3 10 33',
       primaryHover:       '7 20 55',
