@@ -32,4 +32,7 @@ pnpm-debug.log*
 
 # Cache
 .cache/
-.vercel
+
+# Vercel — keep project link, ignore build output
+.vercel/output/
+.vercel/README.txt
