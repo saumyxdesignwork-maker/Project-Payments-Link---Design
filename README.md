@@ -1,6 +1,10 @@
-# Project Payments Link
+# Project Payments Link — Design
 
-A React + TypeScript prototype for a checkout and post-purchase learner portal.
+**Live prototype:** [payments-link-design.vercel.app](https://payments-link-design.vercel.app)
+
+**GitHub:** [saumyxdesignwork-maker/Project-Payments-Link---Design](https://github.com/saumyxdesignwork-maker/Project-Payments-Link---Design)
+
+A React + TypeScript prototype for a checkout and post-purchase learner portal, covering the full NSDC and Non-NSDC payment link design — including brand theming, all checkout scenarios, enrollment wizard, and customer self-serve portal.
 
 This app models the full learner journey:
 
@@ -11,6 +15,16 @@ This app models the full learner journey:
 - self-serve portal for orders and access
 
 The current implementation is frontend-only and uses mocked data/services for portal, enrollment, NSDC, payments, invoices, and refunds.
+
+## Prototype Scope
+
+This repository is the single source of truth for the full Payment Link design prototype:
+
+- **NSDC scenario** — NSDC branding, compliance alert cards, enrollment wizard NSDC step, retroactive NSDC catch-up flow
+- **Non-NSDC scenario** — same checkout/portal without any NSDC UI, controlled by the header toggle
+- **Brand switching** — Outskill and GrowthSchool themes switchable at runtime from the header
+- **21 use-case scenarios** — indexed at `/dev/use-cases` for QA walkthroughs
+- **Customer portal changes** — full self-serve portal: order history, order detail with installment timeline, Get Access dashboard, per-order access & NSDC actions
 
 ## Stack
 
@@ -49,7 +63,7 @@ The current implementation is frontend-only and uses mocked data/services for po
 
 ### Requirements
 
-- Node.js `20.x`
+- Node.js `24.x`
 - npm
 
 ### Install
