@@ -8,6 +8,7 @@ export default defineConfig({
   // filesystems (e.g. macOS); on Linux (Vercel) fonts would be missing from the build.
   publicDir: 'Public',
   server: {
-    allowedHosts: ['.loca.lt']
+    allowedHosts: ['.loca.lt'],
+    open: '/dev/use-cases',
   }
 })
