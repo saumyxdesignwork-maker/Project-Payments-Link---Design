@@ -20,7 +20,7 @@ export const PaymentLinkFooter: React.FC = () => {
 
   return (
     <footer
-      className="mt-auto w-full border-t border-white/10 bg-[#041a01] text-[#b8c9bc] text-sm"
+      className="mt-auto w-full border-t border-white/10 bg-surface-inverse text-[#b8c9bc] text-sm"
       role="contentinfo"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8 sm:flex-row sm:justify-between sm:items-start sm:gap-10">

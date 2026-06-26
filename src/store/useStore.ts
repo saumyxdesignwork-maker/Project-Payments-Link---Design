@@ -4,6 +4,8 @@ import type { PostPaymentContext } from '../types/portal';
 
 export type PaymentMode = 'partial' | 'full';
 export type ProgramType = 'nsdc' | 'non-nsdc';
+export type CheckoutScenario = 'standard' | 'no-addons' | 'full-no-addons' | 'full-with-addons';
+export type BrandType = 'outskill' | 'growthschool';
 
 export interface UserDetails {
   fullName: string;
@@ -29,6 +31,8 @@ interface AppState {
   selectedDurationId: string;
   paymentMode: PaymentMode;
   programType: ProgramType;
+  checkoutScenario: CheckoutScenario;
+  brand: BrandType;
 
   // User details
   userDetails: UserDetails;
@@ -52,6 +56,8 @@ interface AppState {
   setDurationId: (id: string) => void;
   setPaymentMode: (mode: PaymentMode) => void;
   setProgramType: (type: ProgramType) => void;
+  setCheckoutScenario: (scenario: CheckoutScenario) => void;
+  setBrand: (brand: BrandType) => void;
   setUserDetails: (details: Partial<UserDetails>) => void;
   setStep1Skipped: (v: boolean) => void;
   toggleBump: (id: string) => void;
@@ -104,6 +110,8 @@ export const useStore = create<AppState>((set) => ({
   selectedDurationId: defaultDurationId,
   paymentMode: 'full',
   programType: 'nsdc',
+  checkoutScenario: 'standard',
+  brand: 'outskill',
 
   userDetails: { fullName: '', email: '', phone: '', countryCode: 'IN' },
   step1Skipped: false,
@@ -126,6 +134,8 @@ export const useStore = create<AppState>((set) => ({
   setDurationId: (id) => set({ selectedDurationId: id }),
   setPaymentMode: (mode) => set({ paymentMode: mode }),
   setProgramType: (type) => set({ programType: type }),
+  setCheckoutScenario: (scenario) => set({ checkoutScenario: scenario }),
+  setBrand: (brand) => set({ brand }),
   setUserDetails: (details) =>
     set((state) => ({ userDetails: { ...state.userDetails, ...details } })),
   setStep1Skipped: (v) => set({ step1Skipped: v }),
@@ -171,5 +181,6 @@ export const useStore = create<AppState>((set) => ({
       checkoutAddonsTotal: 0,
       checkoutDiscountMultiplier: 1,
       checkoutFlatDiscount: 0,
+      checkoutScenario: 'standard',
     }),
 }));

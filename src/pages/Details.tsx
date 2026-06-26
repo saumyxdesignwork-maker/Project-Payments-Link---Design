@@ -10,7 +10,7 @@ import { Badge } from '../components/Badge';
 import { formatCheckoutPrice } from '../utils/formatters';
 import { CohortSelector } from '../components/CohortSelector';
 import nsdcLogo from '../assets/nsdc-logo.svg';
-import outskillLogo from '../assets/outskill-logo.svg';
+import { BRANDS } from '../data/brand';
 
 export const DetailsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,11 +20,17 @@ export const DetailsPage: React.FC = () => {
     userDetails, 
     setUserDetails,
     programType,
+    gstEnabled,
+    setGstEnabled,
+    gstDetails,
+    setGstDetails,
+    brand,
   } = useStore();
 
   const isNsdc = programType === 'nsdc';
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,12 +75,12 @@ export const DetailsPage: React.FC = () => {
                </Badge>
             )}
           </div>
-          {isNsdc && isIndia && (
-            <div className="flex flex-wrap gap-x-4 mt-1">
+          <div className="flex flex-wrap gap-x-4 mt-1">
+            {isNsdc && isIndia && (
               <span className="text-sm text-slate-600">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
-              <span className="text-sm text-slate-600">SKU ID: {PROGRAM_DATA.sku_id}</span>
-            </div>
-          )}
+            )}
+            <span className="text-sm text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
+          </div>
         </div>
       </div>
 
@@ -166,10 +172,78 @@ export const DetailsPage: React.FC = () => {
                 )}
               </div>
               {/* ──────────────────────────────────────────────────────────────── */}
-              
-              <Button type="submit" fullWidth className="mt-6 font-medium">
-                Proceed to Review
-              </Button>
+
+              {/* GST toggle + fields + CTA in one autolayout column, 8px gap */}
+              <div className="flex flex-col gap-[18px] mt-2">
+                <div
+                  className="flex items-center gap-2 cursor-pointer select-none"
+                  onClick={() => setGstEnabled(!gstEnabled)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={gstEnabled}
+                    onChange={(e) => setGstEnabled(e.target.checked)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="rounded border-slate-300 accent-primary cursor-pointer flex-shrink-0"
+                    style={{ width: '14px', height: '14px' }}
+                  />
+                  <span className="text-sm text-slate-700">I need a GST Invoice</span>
+                </div>
+
+                {gstEnabled && (
+                  <div className="px-4 pb-4 pt-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+                    <Input
+                      label="GST Number (GSTIN)"
+                      placeholder="e.g. 22AAAAA0000A1Z5"
+                      value={gstDetails.gstin}
+                      onChange={(e) => setGstDetails({ gstin: e.target.value.toUpperCase() })}
+                    />
+                    <Input
+                      label="Company Name"
+                      placeholder="Enter your company name"
+                      value={gstDetails.companyName}
+                      onChange={(e) => setGstDetails({ companyName: e.target.value })}
+                    />
+                    <Input
+                      label="Billing Address"
+                      placeholder="Enter your billing address"
+                      value={gstDetails.billingAddress}
+                      onChange={(e) => setGstDetails({ billingAddress: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                <Button type="submit" fullWidth className="font-medium" disabled={!agreedToTerms}>
+                  Proceed to Review
+                </Button>
+              </div>
+
+              {/* Terms agreement checkbox */}
+              <div className="flex items-start gap-2 mt-3">
+                <input
+                  type="checkbox"
+                  id="terms-agreement"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-0.5 rounded border-slate-300 text-primary accent-primary cursor-pointer flex-shrink-0"
+                  style={{ width: '14px', height: '14px' }}
+                />
+                <label htmlFor="terms-agreement" className="text-xs text-slate-500 cursor-pointer leading-relaxed">
+                  By proceeding you agree to our{' '}
+                  <a href="https://outskill.com/terms" target="_blank" rel="noopener noreferrer" className="underline text-slate-600 hover:text-slate-900">
+                    Terms
+                  </a>
+                  ,{' '}
+                  <a href="https://outskill.com/privacy" target="_blank" rel="noopener noreferrer" className="underline text-slate-600 hover:text-slate-900">
+                    Privacy
+                  </a>
+                  {' '}&amp;{' '}
+                  <a href="https://outskill.com/refund-policy" target="_blank" rel="noopener noreferrer" className="underline text-slate-600 hover:text-slate-900">
+                    Refund Policy
+                  </a>
+                  .
+                </label>
+              </div>
             </form>
           </section>
         </div>
@@ -222,14 +296,14 @@ export const DetailsPage: React.FC = () => {
                <div className="relative z-10">
                  <div className="flex flex-col items-start gap-3">
                    <img
-                     src={outskillLogo}
-                     alt="Outskill"
-                     className="h-6 w-auto flex-shrink-0 object-contain"
+                     src={BRANDS[brand].logo}
+                     alt={BRANDS[brand].logoAlt}
+                     className="h-4 w-auto flex-shrink-0 object-contain"
                    />
                    <div>
                      <h3 className="font-medium text-slate-900">Certification of Completion included</h3>
                      <p className="text-sm text-slate-600 mt-1">
-                       Upon successful completion, you will receive a Certificate of Completion from Outskill.
+                       Upon successful completion, you will receive a Certificate of Completion from {BRANDS[brand].name}.
                      </p>
                    </div>
                  </div>

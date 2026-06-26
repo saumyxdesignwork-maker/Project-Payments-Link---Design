@@ -8,16 +8,16 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#1E3A2F',
-          hover: '#162d24',
-          light: '#e8f0eb',
-          foreground: '#ffffff',
+          DEFAULT: 'rgb(var(--brand-primary) / <alpha-value>)',
+          hover: 'rgb(var(--brand-primary-hover) / <alpha-value>)',
+          light: 'rgb(var(--brand-primary-light) / <alpha-value>)',
+          foreground: 'rgb(var(--brand-primary-foreground) / <alpha-value>)',
         },
         surface: {
           page: '#f8fafc',
           card: '#ffffff',
           subtle: '#f8fafc',
-          inverse: '#041B01',
+          inverse: 'rgb(var(--brand-hero) / <alpha-value>)',
         },
         text: {
           primary: '#0f172a',
@@ -58,7 +58,7 @@ export default {
         },
         /** Partial-payment hero / dark panels — brand fill */
         brand: {
-          hero: '#041B01',
+          hero: 'rgb(var(--brand-hero) / <alpha-value>)',
         },
         whatsapp: {
           DEFAULT: '#25D366',

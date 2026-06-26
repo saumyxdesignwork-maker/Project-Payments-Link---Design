@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { ChevronDownIcon, ShoppingBagIcon, KeyIcon } from '@heroicons/react/24/outline';
-import outskillLogo from './assets/outskill-logo.svg';
 import { DetailsPage } from './pages/Details';
 import { ReviewPage } from './pages/Review';
 import { SuccessPage } from './pages/Success';
@@ -13,12 +12,13 @@ import { GetAccessPage } from './pages/portal/GetAccessPage';
 import { AccessDetailPage } from './pages/portal/AccessDetailPage';
 import { UseCaseIndexPage } from './pages/dev/UseCaseIndexPage';
 import { useStore } from './store/useStore';
-import type { ProgramType } from './store/useStore';
+import type { ProgramType, CheckoutScenario, BrandType } from './store/useStore';
+import { BRANDS } from './data/brand';
 import { PaymentLinkFooter } from './components/PaymentLinkFooter';
 
 function App() {
   const location = useLocation();
-  const { userDetails, resetToStep1, programType, setProgramType } = useStore();
+  const { userDetails, resetToStep1, programType, setProgramType, checkoutScenario, setCheckoutScenario, brand, setBrand } = useStore();
   const email = userDetails?.email?.trim() ?? '';
   /** Details (`/`) is before the learner has finished step 1 — no header email until `/review`+. */
   const showHeaderEmail = email.length > 0 && location.pathname !== '/';
@@ -41,14 +41,63 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Inject a <style> tag into <head> with !important overrides for every
+  // brand-driven class. This is the most reliable approach — it bypasses all
+  // Tailwind layer ordering and CSS variable resolution issues.
+  useEffect(() => {
+    const STYLE_ID = 'brand-theme-overrides';
+    let el = document.getElementById(STYLE_ID) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement('style');
+      el.id = STYLE_ID;
+      document.head.appendChild(el);
+    }
+
+    if (brand === 'outskill') {
+      el.textContent = ''; // remove overrides — stylesheet defaults apply
+      return;
+    }
+
+    const t = BRANDS[brand].tokens;
+    const [pr, pg, pb]   = t.primary.split(' ');
+    const [hr, hg, hb]   = t.primaryHover.split(' ');
+    const [lr, lg, lb]   = t.primaryLight.split(' ');
+    const [fr, fg, fb]   = t.primaryForeground.split(' ');
+    const [xr, xg, xb]   = t.hero.split(' ');
+    const p  = `rgb(${pr} ${pg} ${pb})`;
+    const ph = `rgb(${hr} ${hg} ${hb})`;
+    const pl = `rgb(${lr} ${lg} ${lb})`;
+    const pf = `rgb(${fr} ${fg} ${fb})`;
+    const h  = `rgb(${xr} ${xg} ${xb})`;
+
+    el.textContent = `
+      .bg-primary                           { background-color: ${p}  !important; }
+      .hover\\:bg-primary-hover:hover        { background-color: ${ph} !important; }
+      .hover\\:bg-primary:hover              { background-color: ${p}  !important; }
+      .bg-primary-light                     { background-color: ${pl} !important; }
+      .hover\\:bg-primary-light:hover        { background-color: ${pl} !important; }
+      .bg-primary-light\\/70                 { background-color: ${pl} !important; }
+      .hover\\:bg-primary-light\\/70:hover    { background-color: ${pl} !important; }
+      .text-primary                         { color: ${p}  !important; }
+      .text-primary-foreground              { color: ${pf} !important; }
+      .border-primary                       { border-color: ${p} !important; }
+      .border-primary-light                 { border-color: ${pl} !important; }
+      .bg-surface-inverse                   { background-color: ${h} !important; }
+      .bg-brand-hero                        { background-color: ${h} !important; }
+      .focus\\:ring-primary:focus            { --tw-ring-color: ${p}; }
+      .ring-primary                         { --tw-ring-color: ${p}; }
+      .hover\\:border-primary:hover          { border-color: ${p} !important; }
+    `;
+  }, [brand]);
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
       <div className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex w-full items-center">
           <img
-            src={outskillLogo}
-            alt="Outskill"
-            className="h-auto max-h-[20px] w-auto max-w-[90px] object-contain object-center select-none sm:max-h-[22px] sm:max-w-[95px] flex-shrink-0"
+            src={BRANDS[brand].logo}
+            alt={BRANDS[brand].logoAlt}
+            className="h-auto max-h-[40px] w-auto max-w-[180px] object-contain object-center select-none sm:max-h-[44px] sm:max-w-[190px] flex-shrink-0"
           />
 
           {/* Program type switcher — always visible for prototype testing */}
@@ -72,6 +121,46 @@ function App() {
                 {label}
               </button>
             ))}
+          </div>
+
+          {/* Checkout scenario switcher — prototype testing of layout use cases */}
+          <div className="flex items-center gap-1.5 ml-3 flex-shrink-0">
+            <span className="text-xs text-slate-400 hidden sm:inline">Scenario:</span>
+            <select
+              value={checkoutScenario}
+              onChange={(e) => setCheckoutScenario(e.target.value as CheckoutScenario)}
+              className="text-xs rounded-lg border border-slate-200 bg-white text-slate-700 py-1 pl-2 pr-6 appearance-none shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                backgroundPosition: 'right 0.25rem center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '1.1em 1.1em',
+              }}
+            >
+              <option value="standard">Standard (all options)</option>
+              <option value="no-addons">UC1 — No add-ons</option>
+              <option value="full-no-addons">UC2 — Full only</option>
+              <option value="full-with-addons">UC3 — Full only + add-ons</option>
+            </select>
+          </div>
+
+          {/* Brand switcher — prototype testing of brand themes */}
+          <div className="flex items-center gap-1.5 ml-3 flex-shrink-0">
+            <span className="text-xs text-slate-400 hidden sm:inline">Brand:</span>
+            <select
+              value={brand}
+              onChange={(e) => setBrand(e.target.value as BrandType)}
+              className="text-xs rounded-lg border border-slate-200 bg-white text-slate-700 py-1 pl-2 pr-6 appearance-none shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                backgroundPosition: 'right 0.25rem center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '1.1em 1.1em',
+              }}
+            >
+              <option value="outskill">Outskill</option>
+              <option value="growthschool">GrowthSchool</option>
+            </select>
           </div>
 
           {/* Portal tabs — centred in the remaining space, only on /portal/* */}

@@ -114,7 +114,7 @@ const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
               href={order.lmsLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
             >
               Open Program
               <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
@@ -122,7 +122,7 @@ const AccessCard: React.FC<AccessCardProps> = ({ order, onChangeBatch }) => {
           ) : (
             <Link
               to={`/portal/access/${order.id}`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
             >
               Get Access
               <ArrowRightIcon className="h-3.5 w-3.5" />

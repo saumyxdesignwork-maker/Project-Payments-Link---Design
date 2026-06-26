@@ -80,7 +80,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, showNsdc }) 
                 className={[
                   'h-5 w-5 rounded-full flex items-center justify-center text-xs font-medium transition-colors',
                   isCompleted ? 'bg-green-500 text-white' : '',
-                  isCurrent ? 'bg-primary text-white border-2 border-primary/60' : '',
+                  isCurrent ? 'bg-primary text-primary-foreground border-2 border-primary/60' : '',
                   !isCompleted && !isCurrent ? 'bg-slate-200 text-slate-500' : '',
                 ].join(' ')}
               >

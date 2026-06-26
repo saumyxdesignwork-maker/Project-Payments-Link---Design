@@ -35,6 +35,22 @@
   font-display: swap;
 }
 
+/* ── Brand CSS variables ───────────────────────────────────────────────────────
+   Stored as space-separated RGB channels so Tailwind opacity modifiers work:
+   e.g. bg-primary/50 resolves to rgb(var(--brand-primary) / 0.5)
+   These defaults (Outskill) are overridden at runtime via JS inline styles
+   in App.tsx whenever the brand changes (see useBrandTheme effect).
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Outskill defaults */
+  --brand-primary:            30 58 47;
+  --brand-primary-hover:      22 45 36;
+  --brand-primary-light:      232 240 235;
+  --brand-primary-foreground: 255 255 255;
+  --brand-hero:               4 27 1;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

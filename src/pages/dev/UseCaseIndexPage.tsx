@@ -142,7 +142,7 @@ const UcCard: React.FC<UcCardProps> = ({ uc, index }) => {
               'inline-flex items-center gap-1.5 text-xs font-medium rounded-lg px-3 py-1.5 transition-all',
               launched
                 ? 'bg-emerald-500 text-white border border-emerald-500'
-                : 'bg-primary text-white hover:bg-primary/90 border border-primary',
+                : 'bg-primary text-primary-foreground hover:bg-primary/90 border border-primary',
             ].join(' ')}
           >
             {launched ? (
@@ -215,7 +215,7 @@ export const UseCaseIndexPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Dev-only header banner */}
-      <div className="bg-[#041B01] text-white/80 text-xs text-center py-2 font-mono tracking-wide">
+      <div className="bg-brand-hero text-white/80 text-xs text-center py-2 font-mono tracking-wide">
         🔬 DEV ONLY — Use Case Index — not visible in production builds
       </div>
 

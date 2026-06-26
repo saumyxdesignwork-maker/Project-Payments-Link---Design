@@ -6,7 +6,6 @@ import type { BumpProduct, AudioProduct } from '../data/paymentLink';
 import { useStore } from '../store/useStore';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { Input } from '../components/Input';
 import { formatCheckoutPrice, formatCohortDate, getCohortRelativeDays, formatDate } from '../utils/formatters';
 import {
   applyCheckoutDiscount,
@@ -77,32 +76,6 @@ const ProductMeta: React.FC<{
     </div>
   );
 };
-
-// GST invoice control
-interface GstProps {
-  gstEnabled: boolean; onToggle: (v: boolean) => void;
-  companyName: string; gstin: string; billingAddress: string;
-  onChange: (f: 'companyName' | 'gstin' | 'billingAddress', v: string) => void;
-}
-const GstControl: React.FC<GstProps> = ({ gstEnabled, onToggle, companyName, gstin, billingAddress, onChange }) => (
-  <>
-    <label className="flex items-center gap-3 cursor-pointer select-none">
-      <input type="checkbox" checked={gstEnabled} onChange={(e) => onToggle(e.target.checked)}
-        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-      <span className="text-sm font-normal text-slate-800">I need a GST Invoice</span>
-    </label>
-    {gstEnabled && (
-      <div className="mt-4 space-y-3">
-        <Input label="Company Name" placeholder="Acme Pvt. Ltd." value={companyName}
-          onChange={(e) => onChange('companyName', e.target.value)} />
-        <Input label="GSTIN" placeholder="22AAAAA0000A1Z5" value={gstin}
-          onChange={(e) => onChange('gstin', e.target.value.toUpperCase())} />
-        <Input label="Billing Address" placeholder="123, Street, City – 000000" value={billingAddress}
-          onChange={(e) => onChange('billingAddress', e.target.value)} />
-      </div>
-    )}
-  </>
-);
 
 // Bump / Audio product card — two-zone layout matching design spec
 interface AddonCardProps {
@@ -214,7 +187,7 @@ const DuplicateWarning: React.FC<DuplicateWarningProps> = ({
     <div className="border-t border-amber-200 bg-white px-5 py-4 flex flex-col sm:flex-row gap-3">
       <Button
         onClick={onCheckDetails}
-        className="flex-1 bg-primary hover:bg-primary-hover text-white"
+        className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground"
       >
         Check Details
       </Button>
@@ -242,7 +215,6 @@ export const ReviewPage: React.FC = () => {
     selectedBumpIds, toggleBump,
     selectedAudioIds, toggleAudio,
     gstEnabled, setGstEnabled,
-    gstDetails, setGstDetails,
     duplicateStatus, setDuplicateStatus,
     duplicateMaskedEmail, setDuplicateMaskedEmail,
     resetDuplicateCheck, resetToStep1,
@@ -250,9 +222,16 @@ export const ReviewPage: React.FC = () => {
     setCheckoutDiscountMultiplier,
     setCheckoutFlatDiscount,
     programType,
+    checkoutScenario,
   } = useStore();
 
   const isNsdc = programType === 'nsdc';
+
+  // ── Scenario-derived flags ──────────────────────────────────────────────────
+  const allowPartial = checkoutScenario === 'standard' || checkoutScenario === 'no-addons';
+  const showAddons   = checkoutScenario === 'standard' || checkoutScenario === 'full-with-addons';
+  /** Collapse to single column when the left column would be bare (UC2 only). */
+  const singleColumn = !allowPartial && !showAddons;
 
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
@@ -269,9 +248,11 @@ export const ReviewPage: React.FC = () => {
 
   const bumpProducts  = PROGRAM_DATA.bump_products  ?? [];
   const audioProducts = PROGRAM_DATA.audio_products ?? [];
-  const selectedBumps  = bumpProducts.filter((b) => selectedBumpIds.includes(b.id));
-  const selectedAudios = audioProducts.filter((a) => selectedAudioIds.includes(a.id));
-  const addonsTotal    = [...selectedBumps, ...selectedAudios].reduce((s, p) => s + p.price, 0);
+  const selectedBumps  = showAddons ? bumpProducts.filter((b) => selectedBumpIds.includes(b.id))  : [];
+  const selectedAudios = showAddons ? audioProducts.filter((a) => selectedAudioIds.includes(a.id)) : [];
+  const addonsTotal    = showAddons
+    ? [...selectedBumps, ...selectedAudios].reduce((s, p) => s + p.price, 0)
+    : 0;
   const displayFee         = basePrice + addonsTotal;
   /** Partial: course booking + add-ons now; later schedule = course remainder only. */
   const partialDueTodayRaw = partialBookingDueToday(addonsTotal);
@@ -305,6 +286,11 @@ export const ReviewPage: React.FC = () => {
   useEffect(() => {
     if (isNsdc && gstEnabled) setGstEnabled(false);
   }, [isNsdc, gstEnabled, setGstEnabled]);
+
+  // ── Force full payment when scenario disables partial ────────────────────
+  useEffect(() => {
+    if (!allowPartial && paymentMode !== 'full') setPaymentMode('full');
+  }, [allowPartial, paymentMode, setPaymentMode]);
 
   // ── Duplicate check on mount — keyed by email ──────────────────────────────
   useEffect(() => {
@@ -382,10 +368,10 @@ export const ReviewPage: React.FC = () => {
         <span>Edit details</span>
       </button>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className={singleColumn ? 'max-w-xl mx-auto space-y-6' : 'grid lg:grid-cols-3 gap-8'}>
 
-        {/* ── Left 2 columns ──────────────────────────────────────────────────── */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* ── Left / main column ──────────────────────────────────────────────── */}
+        <div className={singleColumn ? 'space-y-6' : 'lg:col-span-2 space-y-6'}>
 
           {/* ── Unified Product Card ────────────────────────────────────────── */}
           <div className="rounded-xl border border-slate-200 bg-white">
@@ -402,9 +388,12 @@ export const ReviewPage: React.FC = () => {
               </div>
               {isNsdc && isIndia && (
                 <div className="flex flex-wrap gap-x-4 mt-1">
-                  <span className="text-sm text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
                   <span className="text-sm text-slate-400">NSDC: {PROGRAM_DATA.nsdc_course_name}</span>
+                  <span className="text-sm text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
                 </div>
+              )}
+              {!isNsdc && (
+                <p className="text-sm text-slate-400 mt-1">SKU ID: {PROGRAM_DATA.sku_id}</p>
               )}
               <div className={clsx('flex flex-wrap items-center gap-2 text-sm text-slate-500', isIndia ? 'mt-3' : 'mt-2')}>
                 <span className="font-medium text-slate-700">{userDetails.fullName || '—'}</span>
@@ -447,41 +436,43 @@ export const ReviewPage: React.FC = () => {
             {/* Payment mode + schedule — inside card when not checking/duplicate */}
             {!isChecking && !isDuplicateFound && (
               <>
-                {/* Choose payment option */}
-                <div className="border-t border-slate-100 px-5 pt-5 pb-5">
-                  <p className="text-sm font-normal text-slate-500 mb-3">Choose payment option</p>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {[
-                      { mode: 'full' as const,    label: 'Full Payment',    amount: displayFeeDiscounted,                   sub: '' },
-                      {
-                        mode: 'partial' as const,
-                        label: 'Booking Amount',
-                        amount: partialDueTodayDiscounted,
-                        sub:
-                          addonsTotal > 0
-                            ? 'Includes add-ons · remaining course fee on schedule'
-                            : 'Pay remaining course fee later',
-                      },
-                    ].map(({ mode, label, amount, sub }) => {
-                      const isSel = paymentMode === mode;
-                      return (
-                        <div key={mode} onClick={() => setPaymentMode(mode)}
-                          className={clsx(
-                            'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200',
-                            isSel ? 'border-primary bg-primary-light' : 'border-slate-200 hover:border-slate-300 bg-white'
-                          )}
-                        >
-                          <div className={clsx('h-5 w-5 rounded-full border flex items-center justify-center mb-2', isSel ? 'border-primary' : 'border-slate-300')}>
-                            {isSel && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                {/* Choose payment option — hidden when only full payment is available */}
+                {allowPartial && (
+                  <div className="border-t border-slate-100 px-5 pt-5 pb-5">
+                    <p className="text-sm font-normal text-slate-500 mb-3">Choose payment option</p>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {[
+                        { mode: 'full' as const,    label: 'Full Payment',    amount: displayFeeDiscounted,                   sub: '' },
+                        {
+                          mode: 'partial' as const,
+                          label: 'Booking Amount',
+                          amount: partialDueTodayDiscounted,
+                          sub:
+                            addonsTotal > 0
+                              ? 'Includes add-ons · remaining course fee on schedule'
+                              : 'Pay remaining course fee later',
+                        },
+                      ].map(({ mode, label, amount, sub }) => {
+                        const isSel = paymentMode === mode;
+                        return (
+                          <div key={mode} onClick={() => setPaymentMode(mode)}
+                            className={clsx(
+                              'relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200',
+                              isSel ? 'border-primary bg-primary-light' : 'border-slate-200 hover:border-slate-300 bg-white'
+                            )}
+                          >
+                            <div className={clsx('h-5 w-5 rounded-full border flex items-center justify-center mb-2', isSel ? 'border-primary' : 'border-slate-300')}>
+                              {isSel && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                            </div>
+                            <h3 className="font-medium text-base text-slate-900">{label}</h3>
+                            <p className="text-xl font-semibold text-slate-900 mt-1">{formatPrice(amount)}</p>
+                            {sub && <p className="text-sm text-slate-500 mt-1">{sub}</p>}
                           </div>
-                          <h3 className="font-medium text-base text-slate-900">{label}</h3>
-                          <p className="text-xl font-semibold text-slate-900 mt-1">{formatPrice(amount)}</p>
-                          {sub && <p className="text-sm text-slate-500 mt-1">{sub}</p>}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Payment schedule — inside card when partial is selected */}
                 {paymentMode === 'partial' && (
@@ -526,8 +517,8 @@ export const ReviewPage: React.FC = () => {
           {!isChecking && !isDuplicateFound && (
             <>
 
-              {/* Bumps + Audio — "Don't miss out on these deals" */}
-              {(bumpProducts.length > 0 || audioProducts.length > 0) && (
+              {/* Bumps + Audio — only when scenario allows add-ons */}
+              {showAddons && (bumpProducts.length > 0 || audioProducts.length > 0) && (
                 <section>
                   <h3 className="text-base font-medium text-slate-900 mb-4">Add-ons</h3>
                   <div className="space-y-4">
@@ -557,24 +548,30 @@ export const ReviewPage: React.FC = () => {
 
 
 
-              {/* ── GST Invoice — non-NSDC programs only ── */}
-              {!isNsdc && (
-                <Card className="px-6 py-4 bg-white border-slate-200">
-                  <GstControl
-                    gstEnabled={gstEnabled} onToggle={setGstEnabled}
-                    companyName={gstDetails.companyName} gstin={gstDetails.gstin} billingAddress={gstDetails.billingAddress}
-                    onChange={(f, v) => setGstDetails({ [f]: v })}
-                  />
-                </Card>
+              {/* ── Pay button at the bottom of the left column (2-column layout only) ── */}
+              {!isDuplicateFound && !singleColumn && (
+                <div className="flex flex-col gap-2">
+                  <Button
+                    onClick={handlePay}
+                    disabled={isPaying || isChecking}
+                    className="w-full font-semibold py-3 text-base shadow-md active:scale-[0.98]"
+                  >
+                    {isPaying ? 'Processing…' : `Pay ${formatPrice(amountPayableToday)}`}
+                  </Button>
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
+                    <CheckCircleIcon className="h-4 w-4 text-green-500" />
+                    <span>Secure Payment · 256-bit SSL Encrypted</span>
+                  </div>
+                </div>
               )}
 
             </>
           )}
         </div>
 
-        {/* ── Right column — sticky order summary ──────────────────────────────── */}
-        <div className="lg:col-span-1">
-          <div className="lg:sticky lg:top-6 space-y-4">
+        {/* ── Right / summary column ───────────────────────────────────────────── */}
+        <div className={singleColumn ? '' : 'lg:col-span-1'}>
+          <div className={singleColumn ? 'flex flex-col-reverse gap-4' : 'lg:sticky lg:top-6 space-y-4'}>
 
             {/* ── Order Summary card + secure badge ── */}
             <div className="flex flex-col gap-2">

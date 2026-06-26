@@ -80,7 +80,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
       href={ctaUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
     >
       Open program
       <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
@@ -147,7 +147,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex-shrink-0"
         >
           {label}
           <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
@@ -168,7 +168,7 @@ export const ProductAccessCard: React.FC<ProductAccessCardProps> = ({
           <button
             type="button"
             onClick={() => navigate(ordersPath)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-normal text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 w-fit"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-normal text-primary-foreground transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 w-fit"
           >
             View my orders
           </button>

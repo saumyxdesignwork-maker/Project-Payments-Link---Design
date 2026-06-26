@@ -297,7 +297,7 @@ export const AccessDetailPage: React.FC = () => {
                           setNsdcGateError(true);
                           document.getElementById('get-access')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                       >
                         Open program
                         <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
@@ -307,7 +307,7 @@ export const AccessDetailPage: React.FC = () => {
                         href={order.lmsLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                       >
                         Open program
                         <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />

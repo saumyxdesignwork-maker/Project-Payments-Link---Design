@@ -55,7 +55,7 @@ export const LegacyNsdcCatchUpCard: React.FC<LegacyNsdcCatchUpCardProps> = ({ or
               </div>
               <Link
                 to={`/portal/orders/${o.id}`}
-                className="inline-flex items-center justify-center gap-1.5 shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary-hover transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary-hover transition-colors"
               >
                 Complete NSDC
                 <ArrowRightIcon className="h-3.5 w-3.5" />
