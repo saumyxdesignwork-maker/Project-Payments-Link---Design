@@ -115,15 +115,6 @@ function PaymentStatusIcon({ status }: { status: Payment['status'] }) {
   return <ClockIcon className="h-4 w-4 text-status-warning-solid" />;
 }
 
-function paymentStatusBadge(status: Payment['status']) {
-  const map: Record<Payment['status'], { label: string; variant: 'success' | 'error' | 'warning' }> = {
-    success: { label: 'Success', variant: 'success' },
-    failed: { label: 'Failed', variant: 'error' },
-    pending: { label: 'Pending', variant: 'warning' },
-  };
-  return map[status];
-}
-
 // ─── Section A: Order Summary ─────────────────────────────────────────────────
 
 interface OrderSummaryProps {
@@ -232,25 +223,21 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, currency, secti
       <h3 className="mb-4 text-base font-medium text-text-primary">Payment History</h3>
       <div className="divide-y divide-border-subtle">
         {payments.map((payment) => {
-          const badge = paymentStatusBadge(payment.status);
           return (
             <div key={payment.id} className="py-3 flex items-start gap-3">
               <div className="mt-0.5 flex-shrink-0">
                 <PaymentStatusIcon status={payment.status} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 flex-wrap">
-                  <div>
-                    <p className="text-base font-medium leading-normal text-text-primary">
-                      {formatAmount(payment.amount, currency)}
-                      {payment.isPartial && (
-                        <span className="ml-2 text-sm font-normal text-text-muted">(Partial)</span>
-                      )}
-                    </p>
-                    <p className="mt-0.5 text-sm leading-normal text-text-muted">{formatDateTime(payment.createdAt)}</p>
-                    <p className="font-sans text-sm leading-normal text-text-muted">{payment.id}</p>
-                  </div>
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
+                <div>
+                  <p className="text-base font-medium leading-normal text-text-primary">
+                    {formatAmount(payment.amount, currency)}
+                    {payment.isPartial && (
+                      <span className="ml-2 text-sm font-normal text-text-muted">(Partial)</span>
+                    )}
+                  </p>
+                  <p className="mt-0.5 text-sm leading-normal text-text-muted">{formatDateTime(payment.createdAt)}</p>
+                  <p className="font-sans text-sm leading-normal text-text-muted">{payment.id}</p>
                 </div>
               </div>
             </div>
@@ -267,11 +254,6 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ payments, currency, secti
 // consumed by DocumentSection. All layout/rendering logic lives in that component.
 
 function receiptsToItems(receipts: Receipt[]): DocumentItem[] {
-  const statusBadge: Record<Receipt['status'], { label: string; variant: 'success' | 'warning' | 'default' }> = {
-    available:   { label: 'Ready',      variant: 'success' },
-    pending:     { label: 'Generating', variant: 'warning' },
-    unavailable: { label: 'N/A',        variant: 'default' },
-  };
   // Sort ascending by issuedAt so booking receipt always appears first, then
   // instalment receipts in the order they were issued. Safe for single-receipt orders.
   const ordered = [...receipts].sort(
@@ -284,7 +266,6 @@ function receiptsToItems(receipts: Receipt[]): DocumentItem[] {
       { text: r.id, mono: true },
       { text: formatDate(r.issuedAt) },
     ],
-    badge: statusBadge[r.status],
     actions: r.status === 'available' && r.downloadUrl
       ? [{ label: 'Download', href: r.downloadUrl }]
       : undefined,
@@ -302,11 +283,6 @@ function resolveInvoiceLabel(inv: Invoice): string {
 }
 
 function invoicesToItems(invoices: Invoice[]): DocumentItem[] {
-  const statusBadge: Record<Invoice['status'], { label: string; variant: 'success' | 'warning' | 'default' }> = {
-    available:   { label: 'Ready',      variant: 'success' },
-    pending:     { label: 'Generating', variant: 'warning' },
-    unavailable: { label: 'N/A',        variant: 'default' },
-  };
   return invoices.map((inv) => ({
     id: inv.id,
     title: resolveInvoiceLabel(inv),
@@ -319,7 +295,6 @@ function invoicesToItems(invoices: Invoice[]): DocumentItem[] {
         ? [{ text: `Amount due: ${formatAmount(inv.amountDue, inv.currency)}` }]
         : []),
     ],
-    badge: statusBadge[inv.status],
     actions: inv.status === 'available' && inv.downloadUrl
       ? [{ label: 'Download', href: inv.downloadUrl }]
       : undefined,
