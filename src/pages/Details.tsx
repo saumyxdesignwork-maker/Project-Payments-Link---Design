@@ -67,10 +67,10 @@ export const DetailsPage: React.FC = () => {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="flex flex-col gap-1 mb-2">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-start gap-2 mb-1">
             <h1 className="text-2xl font-medium text-slate-900">{PROGRAM_DATA.title}</h1>
             {isNsdc && PROGRAM_DATA.isNsdcAligned && (
-               <Badge className="bg-yellow-100 text-yellow-800 border border-yellow-200 font-normal">
+               <Badge className="bg-yellow-100 text-yellow-800 border border-yellow-200 font-normal whitespace-nowrap mt-1">
                  NSDC Training Partnership
                </Badge>
             )}
@@ -81,6 +81,22 @@ export const DetailsPage: React.FC = () => {
             )}
             <span className="text-sm text-slate-400">SKU ID: {PROGRAM_DATA.sku_id}</span>
           </div>
+        </div>
+
+        {/* Payment Summary — visible only on mobile, inline below the title (no card box) */}
+        <div className="md:hidden mt-4 space-y-3">
+          <div className="flex flex-col gap-1">
+            <div className="flex justify-between items-baseline">
+              <span className="text-sm text-slate-600">Total Program Fee</span>
+              <span className="text-sm font-medium text-slate-900">
+                {formatCheckoutPrice(PROGRAM_DATA.totalFee, isIndia)}
+              </span>
+            </div>
+            <p className="text-sm text-slate-500">(Inclusive of all taxes)</p>
+          </div>
+          <p className="text-sm text-slate-700">
+            Payment option starting from {formatCheckoutPrice(PROGRAM_DATA.bookingAmount, isIndia)}.
+          </p>
         </div>
       </div>
 
@@ -250,7 +266,8 @@ export const DetailsPage: React.FC = () => {
 
         {/* Right Column - Summary (Static on this page) */}
         <div className="md:sticky md:top-6 h-fit">
-          <Card className="p-6 bg-slate-50 border-slate-200">
+          {/* Payment Summary — hidden on mobile (shown above the title instead) */}
+          <Card className="hidden md:block p-6 bg-slate-50 border-slate-200">
             <h3 className="text-base font-medium text-slate-900 mb-4">Payment Summary</h3>
             <div className="space-y-3">
               <div className="flex flex-col gap-1">

@@ -494,6 +494,128 @@ export const ReviewPage: React.FC = () => {
             )}
           </div>
 
+          {/* ── Order Summary — mobile only, shown right below the product card ── */}
+          {!isChecking && !isDuplicateFound && (
+            <div className="lg:hidden rounded-xl border border-slate-200 bg-white px-6 pt-6 pb-5">
+              <h3 className="text-base font-medium mb-1 text-slate-900">Order Summary</h3>
+              {couponApplied && (
+                <p className="text-xs text-emerald-700 font-normal mb-3">
+                  {isNsdc
+                    ? `${DUMMY_COUPON_CODE} applied · 20% off eligible lines`
+                    : `${FLAT_COUPON_CODE} applied · ₹500 off`}
+                </p>
+              )}
+              <div className="pb-3 mb-3">
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-700 font-normal text-sm">{PROGRAM_DATA.title}</span>
+                  <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
+                    {formatPrice(applyDisc(basePrice))}
+                  </span>
+                </div>
+              </div>
+              {[...selectedBumps, ...selectedAudios].map((p) => (
+                <div key={p.id} className="pb-3 mb-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <span className="text-slate-700 text-sm">{p.name}</span>
+                    <span className="text-slate-900 font-medium text-sm whitespace-nowrap">
+                      {formatPrice(applyDisc(p.price))}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {paymentMode === 'partial' && (
+                <div className="border-t border-slate-100 pt-3 mb-3 space-y-2">
+                  <div className="flex justify-between items-center gap-3 text-sm">
+                    <span className="text-slate-500">Total</span>
+                    <span className="text-slate-900 font-medium shrink-0 tabular-nums">
+                      {formatPrice(displayFeeDiscounted)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center gap-3 text-sm pt-1 border-t border-slate-100">
+                    <span className="text-slate-500">Remaining · scheduled</span>
+                    <span className="text-slate-500 shrink-0 tabular-nums">
+                      {formatPrice(courseRemainderDiscounted)}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-between items-start gap-2 text-sm py-2 border-t border-slate-100 mt-1">
+                <span className="text-slate-500">
+                  Applicable Taxes{!isNsdc && isIndia ? ' (18% GST incl.)' : ''}
+                </span>
+                <span className="text-slate-500 text-right">
+                  {applicableTax > 0 ? formatPrice(applicableTax) : '₹0'}
+                </span>
+              </div>
+              {activeFlatDiscount > 0 && (
+                <div className="flex justify-between items-start gap-2 text-sm py-2 border-t border-slate-100">
+                  <span className="text-emerald-700">Coupon Discount ({FLAT_COUPON_CODE})</span>
+                  <span className="text-emerald-700 text-right">−{formatPrice(activeFlatDiscount)}</span>
+                </div>
+              )}
+              <div className="border-t border-slate-200 pt-4">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-slate-500 text-sm">
+                    {paymentMode === 'partial' ? 'Paying today' : 'Total'}
+                  </span>
+                  <span className="text-sm font-medium text-slate-900">{formatPrice(amountPayableToday)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Coupon — mobile only, shown right below the mobile Order Summary ── */}
+          <div className="lg:hidden">
+            <Card className="p-6 bg-white border-slate-200">
+              <h3 className="text-base font-medium mb-3 text-slate-900">Coupon</h3>
+              <div className="space-y-3">
+                {!couponApplied ? (
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="coupon-code-mobile" className="block text-sm font-normal text-slate-700 leading-snug">
+                        Have a code from sales?
+                      </label>
+                      <div className={clsx(
+                        'flex rounded-lg border bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-0',
+                        couponError ? 'border-red-300 focus-within:ring-red-500' : 'border-slate-300',
+                      )}>
+                        <input
+                          id="coupon-code-mobile"
+                          type="text"
+                          placeholder={isNsdc ? 'e.g. SALES20' : 'e.g. FLAT500'}
+                          value={couponInput}
+                          onChange={(e) => { setCouponInput(e.target.value); if (couponError) setCouponError(''); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyCoupon(); } }}
+                          className="min-w-0 flex-1 border-0 bg-transparent py-2.5 pl-3 pr-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0"
+                        />
+                        <button type="button" onClick={handleApplyCoupon} className="shrink-0 px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary-light/70 border-l border-slate-200 transition-colors">
+                          APPLY
+                        </button>
+                      </div>
+                      {couponError && <p className="text-xs text-red-600">{couponError}</p>}
+                    </div>
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      {isNsdc ? (
+                        <>Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off.</>
+                      ) : (
+                        <>Prototype: use <code className="font-mono text-slate-600">{FLAT_COUPON_CODE}</code> for ₹500 flat off.</>
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
+                    <span className="font-medium">
+                      {isNsdc ? `${DUMMY_COUPON_CODE} · 20% off applied` : `${FLAT_COUPON_CODE} · ₹500 off applied`}
+                    </span>
+                    <button type="button" onClick={handleRemoveCoupon} className="text-xs font-normal text-emerald-800 underline underline-offset-2 self-start sm:self-auto">
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+
           {/* ── Duplicate payment check ─────────────────────────────────────── */}
           {isChecking && (
             <div className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm">
@@ -573,8 +695,85 @@ export const ReviewPage: React.FC = () => {
         <div className={singleColumn ? '' : 'lg:col-span-1'}>
           <div className={singleColumn ? 'flex flex-col-reverse gap-4' : 'lg:sticky lg:top-6 space-y-4'}>
 
-            {/* ── Order Summary card + secure badge ── */}
-            <div className="flex flex-col gap-2">
+            {/* ── Coupon & Taxes card — desktop only ── */}
+            <Card className="hidden lg:block p-6 bg-white border-slate-200">
+              <h3 className="text-base font-medium mb-3 text-slate-900">Coupon</h3>
+
+              {/* Coupon input */}
+              <div className="space-y-3">
+                {!couponApplied ? (
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor="coupon-code"
+                        className="block text-sm font-normal text-slate-700 leading-snug"
+                      >
+                        Have a code from sales?
+                      </label>
+                      <div
+                        className={clsx(
+                          'flex rounded-lg border bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-0',
+                          couponError ? 'border-red-300 focus-within:ring-red-500' : 'border-slate-300',
+                        )}
+                      >
+                        <input
+                          id="coupon-code"
+                          type="text"
+                          placeholder={isNsdc ? 'e.g. SALES20' : 'e.g. FLAT500'}
+                          value={couponInput}
+                          onChange={(e) => {
+                            setCouponInput(e.target.value);
+                            if (couponError) setCouponError('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleApplyCoupon();
+                            }
+                          }}
+                          className="min-w-0 flex-1 border-0 bg-transparent py-2.5 pl-3 pr-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          className="shrink-0 px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary-light/70 border-l border-slate-200 transition-colors"
+                        >
+                          APPLY
+                        </button>
+                      </div>
+                      {couponError ? (
+                        <p className="text-xs text-red-600">{couponError}</p>
+                      ) : null}
+                    </div>
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      {isNsdc ? (
+                        <>Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off.</>
+                      ) : (
+                        <>Prototype: use <code className="font-mono text-slate-600">{FLAT_COUPON_CODE}</code> for ₹500 flat off.</>
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
+                    <span className="font-medium">
+                      {isNsdc
+                        ? `${DUMMY_COUPON_CODE} · 20% off applied`
+                        : `${FLAT_COUPON_CODE} · ₹500 off applied`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-xs font-normal text-emerald-800 underline underline-offset-2 self-start sm:self-auto"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* ── Order Summary card + secure badge — desktop only ── */}
+            <div className="hidden lg:flex flex-col gap-2">
               <Card className="px-6 pt-6 pb-3 bg-white border-slate-200">
                 <h3 className="text-base font-medium mb-1 text-slate-900">Order Summary</h3>
                 {couponApplied && (
@@ -668,92 +867,13 @@ export const ReviewPage: React.FC = () => {
               )}
             </div>
 
-            {/* ── Coupon & Taxes card ── */}
-            <Card className="p-6 bg-white border-slate-200">
-              <h3 className="text-base font-medium mb-3 text-slate-900">Coupon</h3>
-
-              {/* Coupon input */}
-              <div className="space-y-3">
-                {!couponApplied ? (
-                  <>
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor="coupon-code"
-                        className="block text-sm font-normal text-slate-700 leading-snug"
-                      >
-                        Have a code from sales?
-                      </label>
-                      <div
-                        className={clsx(
-                          'flex rounded-lg border bg-white shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-0',
-                          couponError ? 'border-red-300 focus-within:ring-red-500' : 'border-slate-300',
-                        )}
-                      >
-                        <input
-                          id="coupon-code"
-                          type="text"
-                          placeholder={isNsdc ? 'e.g. SALES20' : 'e.g. FLAT500'}
-                          value={couponInput}
-                          onChange={(e) => {
-                            setCouponInput(e.target.value);
-                            if (couponError) setCouponError('');
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleApplyCoupon();
-                            }
-                          }}
-                          className="min-w-0 flex-1 border-0 bg-transparent py-2.5 pl-3 pr-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleApplyCoupon}
-                          className="shrink-0 px-3 py-2.5 text-sm font-medium text-primary hover:bg-primary-light/70 border-l border-slate-200 transition-colors"
-                        >
-                          APPLY
-                        </button>
-                      </div>
-                      {couponError ? (
-                        <p className="text-xs text-red-600">{couponError}</p>
-                      ) : null}
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      {isNsdc ? (
-                        <>Prototype: use <code className="font-mono text-slate-600">{DUMMY_COUPON_CODE}</code> for 20% off.</>
-                      ) : (
-                        <>Prototype: use <code className="font-mono text-slate-600">{FLAT_COUPON_CODE}</code> for ₹500 flat off.</>
-                      )}
-                    </p>
-                  </>
-                ) : (
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2.5 text-sm text-emerald-900">
-                    <span className="font-medium">
-                      {isNsdc
-                        ? `${DUMMY_COUPON_CODE} · 20% off applied`
-                        : `${FLAT_COUPON_CODE} · ₹500 off applied`}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveCoupon}
-                      className="text-xs font-normal text-emerald-800 underline underline-offset-2 self-start sm:self-auto"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
-
-
-            </Card>
-
           </div>
         </div>
       </div>
 
       {/* Mobile sticky footer */}
       {!isDuplicateFound && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 py-4 px-[70px] bg-white border-t border-slate-200 shadow-lg">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 py-4 px-4 bg-white border-t border-slate-200 shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-sm text-slate-500">Paying today</p>
